@@ -1,0 +1,3922 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣旅行成就系統</title>
+    <meta name="description" content="100 項台灣旅遊成就打卡、22 縣市足跡地圖、榮譽徽章牆與探索雷達圖，一鍵生成可分享的旅行成就卡。進度自動保存在瀏覽器，免安裝免註冊。">
+    <meta name="theme-color" content="#12181f">
+    <link rel="canonical" href="https://ivanusto.github.io/taiwan-travel-achievement-list/">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗺️</text></svg>">
+
+    <!-- Open Graph / Twitter social sharing cards -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="台灣旅行成就系統">
+    <meta property="og:title" content="台灣旅行成就系統">
+    <meta property="og:description" content="100 項台灣旅遊成就、22 縣市足跡地圖、徽章牆與雷達圖，一鍵生成你的台灣旅行成就卡！">
+    <meta property="og:url" content="https://ivanusto.github.io/taiwan-travel-achievement-list/">
+    <meta property="og:image" content="https://ivanusto.github.io/taiwan-travel-achievement-list/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="zh_TW">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="台灣旅行成就系統">
+    <meta name="twitter:description" content="100 項台灣旅遊成就、22 縣市足跡地圖、徽章牆與雷達圖，一鍵生成你的台灣旅行成就卡！">
+    <meta name="twitter:image" content="https://ivanusto.github.io/taiwan-travel-achievement-list/og-image.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+
+    <script>
+        // Apply saved theme before first paint
+        try {
+            const savedState = JSON.parse(localStorage.getItem('taiwan_travel_achievements_state'));
+            if (savedState && savedState.theme) document.documentElement.setAttribute('data-theme', savedState.theme);
+        } catch (e) {}
+    </script>
+    <style>
+        :root {
+            /* Dark Theme (Default) */
+            --bg-primary: #12181f;
+            --bg-card: #1b2838;
+            --bg-card-hover: #223246;
+            --border-color: #2a475e;
+            --border-color-active: #00d2ff;
+            --text-primary: #f3f3f3;
+            --text-secondary: #c7d5e0;
+            --text-muted: #8fa0b0;
+            --accent-red: #ff003c;
+            --accent-blue: #00d2ff;
+            --accent-gold: #ffd700;
+            --accent-purple: #9d4edd;
+            --accent-green: #00ff87;
+            --shadow-primary: rgba(0, 0, 0, 0.4);
+            --shadow-glow: rgba(0, 210, 255, 0.25);
+            --washi-bg: radial-gradient(circle at 20% 30%, #17202d 0%, #11161e 100%);
+            --header-gradient: linear-gradient(135deg, #1b2838 0%, #101924 100%);
+        }
+
+        [data-theme="light"] {
+            /* Light Theme (Travel Notebook) */
+            --bg-primary: #faf6f0;
+            --bg-card: #ffffff;
+            --bg-card-hover: #fcf9f5;
+            --border-color: #e6dcd0;
+            --border-color-active: #d71318;
+            --text-primary: #2c2a29;
+            --text-secondary: #5a5754;
+            --text-muted: #8b8882;
+            --accent-red: #d71318;
+            --accent-blue: #1c4587;
+            --accent-gold: #c5a059;
+            --accent-purple: #7851a9;
+            --accent-green: #2e5c1e;
+            --shadow-primary: rgba(184, 134, 11, 0.1);
+            --shadow-glow: rgba(215, 19, 24, 0.15);
+            --washi-bg: radial-gradient(circle at 50% 50%, #faf6f0 0%, #f3ede2 100%);
+            --header-gradient: linear-gradient(135deg, #ffffff 0%, #f9f6f0 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body, header, .card, .filters-panel, .category-wrapper, .category-header, .category-content,
+        .achievement-card, .badge-item, .region-badge, .prefectures-grid-map,
+        .btn, .select-filter, .search-input, .quick-filter-tag, .toast-notification,
+        .progress-track, .avatar-circle, .avatar-option, .player-name-input,
+        .ach-checkbox-custom, .share-modal-content, .avatar-picker-modal,
+        .category-progress-pill, .rarity-pill, .footer-social-links a {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            background: var(--washi-bg);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #toastContainer {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast-notification {
+            background: rgba(27, 40, 56, 0.95);
+            border-left: 6px solid var(--accent-gold);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+            padding: 16px 20px;
+            width: 320px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            backdrop-filter: blur(10px);
+            color: #fff;
+        }
+
+        [data-theme="light"] .toast-notification {
+            background: rgba(255, 255, 255, 0.95);
+            border-left: 6px solid var(--accent-red);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+            border-right: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px rgba(184, 134, 11, 0.15);
+            color: var(--text-primary);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(120%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast-notification.hide {
+            animation: slideOut 0.3s ease forwards;
+        }
+
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(120%); opacity: 0; }
+        }
+
+        .toast-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .toast-content {
+            flex-grow: 1;
+        }
+
+        .toast-title {
+            font-weight: 800;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--accent-gold);
+            margin-bottom: 2px;
+        }
+
+        [data-theme="light"] .toast-title {
+            color: var(--accent-red);
+        }
+
+        .toast-desc {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .app-wrapper {
+            max-width: 1400px;
+            width: 100%;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        header {
+            background: var(--header-gradient);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-primary);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-title-section h1 {
+            margin: 0 0 6px 0;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-title-section p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background: var(--bg-card-hover);
+            border-color: var(--border-color-active);
+            box-shadow: 0 4px 12px var(--shadow-glow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-accent {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            color: #fff;
+        }
+        
+        .btn-accent:hover {
+            background: #ff2255;
+            border-color: #ff2255;
+        }
+
+        [data-theme="light"] .btn-accent {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+        [data-theme="light"] .btn-accent:hover {
+            background: #b50e12;
+            border-color: #b50e12;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 380px 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-primary);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 16px;
+            border-bottom: 2px dashed var(--border-color);
+            padding-bottom: 20px;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+        }
+
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--border-color-active);
+            background: var(--bg-card-hover);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 56px;
+            box-shadow: 0 0 20px var(--shadow-glow);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .avatar-wrapper:hover .avatar-circle {
+            transform: scale(1.05) rotate(5deg);
+            box-shadow: 0 0 30px var(--border-color-active);
+        }
+
+        .avatar-edit-hint {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--border-color-active);
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 2px solid var(--bg-card);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .name-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+        }
+
+        .player-name-input {
+            background: transparent;
+            border: 1px dashed transparent;
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 800;
+            text-align: center;
+            padding: 4px;
+            border-radius: 6px;
+            width: 100%;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .player-name-input:focus, .player-name-input:hover {
+            border-color: var(--border-color-active);
+            background: rgba(255,255,255,0.05);
+        }
+
+        [data-theme="light"] .player-name-input:focus, [data-theme="light"] .player-name-input:hover {
+            background: rgba(0,0,0,0.02);
+        }
+
+        .player-title {
+            color: var(--accent-gold);
+            font-weight: 800;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        [data-theme="light"] .player-title {
+            color: var(--accent-red);
+        }
+
+        .avatar-picker-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-picker-modal {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .avatar-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .avatar-option {
+            font-size: 40px;
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            cursor: pointer;
+            background: var(--bg-primary);
+            transition: all 0.2s;
+        }
+
+        .avatar-option:hover {
+            border-color: var(--border-color-active);
+            transform: scale(1.1);
+        }
+
+        .stats-bar-widget {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .stats-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .progress-track {
+            background: var(--bg-primary);
+            border-radius: 6px;
+            height: 10px;
+            width: 100%;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue) 0%, var(--accent-green) 100%);
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 0 8px var(--shadow-glow);
+        }
+
+        [data-theme="light"] .progress-bar {
+            background: linear-gradient(90deg, var(--accent-red) 0%, var(--accent-gold) 100%);
+        }
+
+        .radar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #radarCanvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .badge-wall-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        .badge-item {
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            position: relative;
+            opacity: 0.2;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .badge-item.unlocked {
+            opacity: 1;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+        }
+
+        [data-theme="light"] .badge-item.unlocked {
+            border-color: var(--accent-red);
+            box-shadow: 0 0 12px rgba(215, 19, 24, 0.25);
+        }
+
+        .badge-item:hover {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .badge-tooltip {
+            position: absolute;
+            background: #111;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            width: 180px;
+            text-align: center;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 100;
+            border: 1px solid var(--border-color);
+        }
+
+        .badge-item:hover .badge-tooltip {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .badge-tooltip-title {
+            font-weight: 800;
+            color: var(--accent-gold);
+            margin-bottom: 4px;
+        }
+
+        [data-theme="light"] .badge-tooltip-title {
+            color: var(--accent-red);
+        }
+
+        .badge-tooltip-desc {
+            font-weight: 500;
+        }
+
+        .main-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .map-section-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 768px) {
+            .map-section-layout {
+                grid-template-columns: 320px 1fr;
+            }
+        }
+
+        .map-scroll-hint {
+            display: none;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 640px) {
+            .map-scroll-hint {
+                display: block;
+            }
+        }
+
+        .prefectures-grid-map {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(12, 1fr);
+            gap: 6px;
+            width: 100%;
+            max-width: 320px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            position: relative;
+            margin: 0 auto;
+        }
+
+        [data-theme="light"] .prefectures-grid-map {
+            background: rgba(184, 134, 11, 0.04);
+            border-color: var(--border-color);
+        }
+
+        .pref-cell {
+            aspect-ratio: 1;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #fff;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        .pref-cell:hover {
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            border-color: #fff;
+        }
+
+        .pref-cell.visited {
+            background-color: var(--accent-red) !important;
+            border-color: #fff !important;
+            box-shadow: 0 0 10px var(--accent-red);
+        }
+
+        .pref-cell.stamp-anim {
+            animation: stampPulse 0.3s ease;
+        }
+
+        @keyframes stampPulse {
+            0% { transform: scale(1.4); }
+            100% { transform: scale(1.0); }
+        }
+
+        .regions-stats-panel {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+        }
+
+        .region-badge {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .region-badge-title {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .region-badge-value {
+            font-size: 18px;
+            color: var(--accent-blue);
+        }
+
+        [data-theme="light"] .region-badge-value {
+            color: var(--accent-red);
+        }
+
+        .filters-panel {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .search-input {
+            flex-grow: 2;
+            min-width: 200px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 16px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .search-input:focus {
+            border-color: var(--border-color-active);
+        }
+
+        .select-filter {
+            flex-grow: 1;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 16px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .select-filter:focus {
+            border-color: var(--border-color-active);
+        }
+
+        .quick-filters-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 12px;
+        }
+
+        .quick-filter-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .quick-filter-tag {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .quick-filter-tag.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: #12181f;
+        }
+
+        [data-theme="light"] .quick-filter-tag.active {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            color: #fff;
+        }
+
+        .category-wrapper {
+            margin-bottom: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .category-header {
+            background: var(--header-gradient);
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .category-header-title {
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .category-progress-pill {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 12px;
+        }
+
+        .category-content {
+            background: var(--bg-card);
+            padding: 16px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        @media (min-width: 640px) {
+            .category-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .category-content {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .category-wrapper.collapsed .category-content {
+            display: none !important;
+        }
+
+        .category-wrapper.collapsed .category-header {
+            border-bottom-color: transparent;
+        }
+
+        .achievement-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            gap: 12px;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .achievement-card:hover {
+            border-color: var(--border-color-active);
+            box-shadow: 0 4px 10px rgba(0, 210, 255, 0.08);
+            transform: translateY(-1px);
+        }
+
+        [data-theme="light"] .achievement-card:hover {
+            box-shadow: 0 4px 10px rgba(215, 19, 24, 0.05);
+        }
+
+        .achievement-card.completed {
+            border-color: var(--accent-gold);
+            background: rgba(255, 215, 0, 0.03);
+            box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.03);
+        }
+
+        [data-theme="light"] .achievement-card.completed {
+            border-color: var(--accent-red);
+            background: rgba(215, 19, 24, 0.02);
+        }
+
+        .ach-checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+        }
+
+        .ach-checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #12181f;
+        }
+
+        .achievement-card.completed .ach-checkbox-custom {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: #12181f;
+        }
+
+        [data-theme="light"] .achievement-card.completed .ach-checkbox-custom {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            color: #fff;
+        }
+
+        .ach-detail-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .ach-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .ach-title {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .rarity-pill {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .rarity-common { background: rgba(143, 160, 176, 0.15); color: var(--text-secondary); }
+        .rarity-rare { background: rgba(0, 210, 255, 0.15); color: var(--accent-blue); }
+        .rarity-epic { background: rgba(157, 78, 221, 0.15); color: #c8b6ff; }
+        .rarity-legendary { background: rgba(255, 215, 0, 0.2); color: var(--accent-gold); border: 1px solid var(--accent-gold); }
+        .rarity-custom { background: rgba(0, 255, 135, 0.15); color: var(--accent-green); }
+
+        .ach-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .ach-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .ach-difficulty-stars {
+            color: var(--accent-gold);
+            font-size: 12px;
+        }
+
+        [data-theme="light"] .ach-difficulty-stars {
+            color: var(--accent-red);
+        }
+
+        .achievement-card.hidden-ach .ach-title,
+        .achievement-card.hidden-ach .ach-desc {
+            filter: blur(4px);
+            user-select: none;
+            opacity: 0.6;
+        }
+
+        .achievement-card.hidden-ach.completed .ach-title,
+        .achievement-card.hidden-ach.completed .ach-desc {
+            filter: none;
+            user-select: auto;
+            opacity: 1;
+        }
+
+        .hidden-ach-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(27, 40, 56, 0.7);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--accent-gold);
+            letter-spacing: 0.5px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        [data-theme="light"] .hidden-ach-overlay {
+            background: rgba(250, 246, 240, 0.7);
+            color: var(--accent-red);
+        }
+
+        .achievement-card.completed .hidden-ach-overlay {
+            display: none !important;
+        }
+
+        .empty-results-hint {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px;
+            grid-column: 1 / -1;
+            font-weight: 600;
+        }
+
+        .custom-ach-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .custom-ach-item {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .custom-ach-left {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            flex-grow: 1;
+        }
+
+        .custom-ach-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .share-modal-backdrop, .custom-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .share-modal-content {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        #sharingPreviewCanvas {
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin: 0 auto;
+            display: block;
+        }
+
+        .share-social-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 8px 0;
+        }
+
+        .share-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .custom-modal-content {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            max-width: 450px;
+            width: 100%;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 800;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: 8px;
+            outline: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .form-control:focus {
+            border-color: var(--border-color-active);
+        }
+
+        footer {
+            margin-top: 48px;
+            border-top: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 1400px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
+        }
+
+        .footer-credit {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .footer-social-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .footer-social-links a {
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .footer-social-links a:hover {
+            color: var(--border-color-active);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confettiCanvas"></canvas>
+    <div id="toastContainer"></div>
+
+    <div class="app-wrapper">
+        <header>
+            <div class="header-title-section">
+                <h1 data-i18n="title">台灣旅行成就系統</h1>
+                <p data-i18n="subtitle">探索寶島足跡 • 解鎖冒險徽章 • 完成你的台灣旅行手帳</p>
+            </div>
+            <div class="header-controls">
+                <select class="select-filter" id="langSelector" style="width: auto;" onchange="changeLanguage(this.value)">
+                    <option value="zh-TW">繁體中文</option>
+                    <option value="en">English</option>
+                    <option value="ja">日本語</option>
+                </select>
+                <a class="btn" href="https://ivanusto.github.io/japan-travel-achievement-list/" target="_blank" rel="noreferrer noopener" style="text-decoration:none;">
+                    <span>🗾</span> <span data-i18n="japanTravelLink">日本旅行成就系統</span>
+                </a>
+                <a class="btn" href="https://ivanusto.github.io/travel-achievement-list/" target="_blank" rel="noreferrer noopener" style="text-decoration:none;">
+                    <span>🌍</span> <span data-i18n="worldTravelLink">環球旅行成就系統</span>
+                </a>
+                <button class="btn btn-accent" onclick="generateShareCard()">
+                    <span data-i18n="shareCardBtn">一鍵分享成就卡</span>
+                </button>
+                <button class="btn" onclick="toggleTheme()">
+                    <span id="themeToggleText" data-i18n="themeToggleTextLight">切換淺色</span>
+                </button>
+                <button class="btn" onclick="exportBackup()" data-i18n="exportBtn">匯出備份</button>
+                <button class="btn" onclick="importBackup()" data-i18n="importBtn">導入備份</button>
+                <button class="btn" style="border-color: rgba(255,0,0,0.3);" onclick="resetAllProgress()" data-i18n="resetBtn">重置</button>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Sidebar -->
+            <div class="main-column" style="gap: 24px;">
+                <!-- Profile Card -->
+                <div class="card">
+                    <div class="profile-container">
+                        <div class="avatar-wrapper" onclick="openAvatarPicker()">
+                            <div class="avatar-circle" id="playerAvatar">🎒</div>
+                            <div class="avatar-edit-hint">✏️</div>
+                        </div>
+                        <div class="name-wrapper">
+                            <input type="text" class="player-name-input" id="playerName" value="台灣探險家" onblur="savePlayerName(this.value)" data-i18n-title="playerNameInputTitle" title="點擊修改暱稱" maxlength="15">
+                            <div class="player-title" id="playerTitle">🌱 台灣新手</div>
+                        </div>
+                        <div class="stats-bar-widget">
+                            <div class="stats-info">
+                                <span data-i18n="levelLabel">等級</span>
+                                <span id="playerLevelDisplay">LV 0</span>
+                            </div>
+                        </div>
+                        <div class="stats-bar-widget">
+                            <div class="stats-info">
+                                <span>XP</span>
+                                <span id="playerXpDisplay">0 / 10 成就</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-bar" id="playerXpBar"></div>
+                            </div>
+                        </div>
+                        <div class="stats-bar-widget">
+                            <div class="stats-info">
+                                <span data-i18n="mapTitleLabel">縣市足跡</span>
+                                <span id="totalPrefCount">已踩點 0 / 22</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Radar Card -->
+                <div class="card radar-container">
+                    <div style="font-size: 15px; font-weight: 800; color: var(--text-secondary); width: 100%; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; text-align: left;" data-i18n="radarChartTitle">📊 分類探索度 (雷達圖)</div>
+                    <canvas id="radarCanvas" width="300" height="300"></canvas>
+                </div>
+
+                <!-- Badge Wall -->
+                <div class="card">
+                    <div style="font-size: 15px; font-weight: 800; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); padding-bottom: 6px;" data-i18n="badgeWallTitle">🏆 徽章展示牆</div>
+                    <div class="badge-wall-grid" id="badgeWallGrid"></div>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="main-column">
+                <!-- Interactive Map -->
+                <div class="card">
+                    <div style="font-size: 18px; font-weight: 900;" data-i18n="mapTitle">縣市足跡地圖</div>
+                    <div class="map-section-layout">
+                        <div>
+                            <div class="prefectures-grid-map" id="taiwanPrefMap"></div>
+                            <div class="map-scroll-hint" data-i18n="mapScrollHint">💡 左右滑動以檢視完整地圖</div>
+                        </div>
+                        <div class="regions-stats-panel" id="regionsStatsPanel"></div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-panel">
+                    <div class="filters-row">
+                        <input type="text" class="search-input" id="searchFilter" placeholder="搜尋成就名稱或說明描述..." oninput="handleFilterChange()" data-i18n-placeholder="searchPlaceholder">
+                        <select class="select-filter" id="diffFilter" onchange="handleFilterChange()">
+                            <option value="all" data-i18n="filterAllDiff">所有難度</option>
+                            <option value="1">★☆☆☆☆ (新手)</option>
+                            <option value="2">★★☆☆☆ (旅人)</option>
+                            <option value="3">★★★☆☆ (探索者)</option>
+                            <option value="4">★★★★☆ (台灣通)</option>
+                            <option value="5">★★★★★ (修羅)</option>
+                            <option value="6" data-i18n="filterDiff6">★★★★★★ (隱藏)</option>
+                        </select>
+                        <select class="select-filter" id="rarityFilter" onchange="handleFilterChange()">
+                            <option value="all" data-i18n="filterAllRarity">所有稀有度</option>
+                            <option value="Common">Common</option>
+                            <option value="Rare">Rare</option>
+                            <option value="Epic">Epic</option>
+                            <option value="Legendary">Legendary</option>
+                        </select>
+                        <select class="select-filter" id="statusFilter" onchange="handleFilterChange()">
+                            <option value="all" data-i18n="filterAllStatus">所有狀態</option>
+                            <option value="completed" data-i18n="filterStatusCompleted">已解鎖</option>
+                            <option value="uncompleted" data-i18n="filterStatusUncompleted">未解鎖</option>
+                        </select>
+                    </div>
+                    <div class="quick-filters-row">
+                        <span class="quick-filter-label" data-i18n="quickFilterLabel">快速篩選徽章：</span>
+                        <div class="quick-filter-tag active" id="badgeTag-all" onclick="handleBadgeFilter('all')">
+                            <span data-i18n="quickFilterAll">全部</span>
+                        </div>
+                        <!-- Programmatically filled badge filters -->
+                        <span id="badgeQuickFiltersRow"></span>
+                    </div>
+                </div>
+
+                <!-- Achievements Container -->
+                <div id="achievementsContainer"></div>
+
+                <!-- Custom Achievements Card -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                        <span style="font-size: 16px; font-weight: 800;" data-i18n="customAchTitle">我的自訂成就</span>
+                        <button class="btn btn-accent" onclick="openCustomAchModal('add')">
+                            <span data-i18n="addCustomAchBtn">新增自訂成就</span>
+                        </button>
+                    </div>
+                    <div class="custom-ach-list" id="customAchList"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="footer-credit" data-i18n="footerCredit">© 2026 台灣旅行成就系統. All rights reserved. Created with 💖 for Taiwan Travelers.</div>
+            <div class="footer-social-links">
+                <a href="https://github.com/ivanusto/taiwan-travel-achievement-list" target="_blank">GitHub</a>
+                <a href="https://github.com/ivanusto/japan-travel-achievement-list" target="_blank" data-i18n="japanTravelLink">日本旅行成就系統</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Avatar Picker -->
+    <div class="avatar-picker-backdrop" id="avatarPickerBackdrop" onclick="closeAvatarPicker()">
+        <div class="avatar-picker-modal" onclick="event.stopPropagation()">
+            <h3 data-i18n="avatarModalTitle">選擇頭像 Emojis</h3>
+            <div class="avatar-picker-grid" id="avatarPickerGrid"></div>
+            <button class="btn" onclick="closeAvatarPicker()" data-i18n="closeBtn">關閉</button>
+        </div>
+    </div>
+
+    <!-- Custom Achievement Adder/Editor -->
+    <div class="custom-modal-backdrop" id="customAchModalBackdrop" onclick="closeCustomAchModal()">
+        <div class="custom-modal-content" onclick="event.stopPropagation()">
+            <h3 id="customAchModalTitle" data-i18n="customAchModalTitleAdd">🌟 新增自訂成就</h3>
+            <div class="form-group">
+                <label for="customAchName" data-i18n="customAchNameLabel">成就名稱（必填，30 字內）</label>
+                <input type="text" class="form-control" id="customAchName" maxlength="30">
+            </div>
+            <div class="form-group">
+                <label for="customAchDesc" data-i18n="customAchDescLabel">成就描述（選填，60 字內）</label>
+                <input type="text" class="form-control" id="customAchDesc" maxlength="60">
+            </div>
+            <div class="form-group">
+                <label for="customAchDiff" data-i18n="customAchDiffLabel">難度星級</label>
+                <select class="form-control" id="customAchDiff">
+                    <option value="1" data-i18n="customAchDiff1">★☆☆☆☆ (輕鬆達成)</option>
+                    <option value="2" data-i18n="customAchDiff2">★★☆☆☆ (小有挑戰)</option>
+                    <option value="3" data-i18n="customAchDiff3">★★★☆☆ (需要努力)</option>
+                    <option value="4" data-i18n="customAchDiff4">★★★★☆ (相當困難)</option>
+                    <option value="5" data-i18n="customAchDiff5">★★★★★ (畢生難忘)</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px;">
+                <button class="btn" onclick="closeCustomAchModal()" data-i18n="cancelBtn">取消</button>
+                <button class="btn btn-accent" onclick="saveCustomAchievement()" data-i18n="saveBtn">儲存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Card Composite Modal -->
+    <div class="share-modal-backdrop" id="shareModalBackdrop" onclick="closeShareModal()">
+        <div class="share-modal-content" onclick="event.stopPropagation()">
+            <h3 data-i18n="shareModalTitle">📸 生成個人旅行成就卡</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;" data-i18n="shareModalDesc">你可以將此圖卡分享到社交媒體（如 Threads, IG 等），向大家炫耀你的台灣旅遊歷練！</p>
+            <div>
+                <canvas id="sharingPreviewCanvas" width="800" height="1200"></canvas>
+            </div>
+            <div class="share-social-row">
+                <span style="font-size: 13px; font-weight: 800; display: inline-flex; align-items: center;" data-i18n="shareToLabel">分享到：</span>
+                <button class="btn" onclick="shareToSocial('threads')">Threads</button>
+                <button class="btn" onclick="shareToSocial('x')">X (Twitter)</button>
+                <button class="btn" onclick="shareToSocial('facebook')">Facebook</button>
+            </div>
+            <div class="share-actions">
+                <button class="btn btn-accent" onclick="downloadShareCard()" data-i18n="downloadPngBtn">下載 PNG 圖片</button>
+                <button class="btn" onclick="closeShareModal()" data-i18n="cancelBtn">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Explorer First Time Register -->
+    <div class="custom-modal-backdrop" id="registerModalBackdrop" style="display: none;">
+        <div class="custom-modal-content" style="max-width: 400px; text-align: center;">
+            <h3 data-i18n="registerTitle">🎒 探險家登錄</h3>
+            <p style="font-size: 13px; color: var(--text-secondary);" data-i18n="registerDesc">歡迎來到台灣旅行成就系統！請為您的手帳進行首次角色登錄：</p>
+            <div class="form-group" style="align-items: center;">
+                <label data-i18n="registerStep1">1. 選擇起手頭像</label>
+                <div class="avatar-circle" id="registerAvatar" onclick="openAvatarPicker('register')" style="cursor: pointer; width: 80px; height: 80px; font-size: 44px; margin-top: 8px;">🎒</div>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+                <label for="registerPlayerName" data-i18n="registerStep2">2. 輸入您的暱稱</label>
+                <input type="text" class="form-control" id="registerPlayerName" placeholder="例如：台灣旅人小明..." data-i18n-placeholder="registerPlaceholder" maxlength="15">
+            </div>
+            <button class="btn btn-accent" style="width: 100%; margin-top: 16px; justify-content: center;" onclick="submitRegister()" data-i18n="registerBtn">🎮 登錄完成，開始冒險！</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 0. Localization Translation Databases ---
+        const TRANSLATIONS = {
+            "zh-TW": {
+                        "title": "台灣旅行成就系統",
+                        "subtitle": "探索寶島足跡 • 解鎖冒險徽章 • 完成你的台灣旅行手帳",
+                        "japanTravelLink": "日本旅行成就系統",
+                        "worldTravelLink": "環球旅行成就系統",
+                        "shareCardBtn": "一鍵分享成就卡",
+                        "themeToggleTextLight": "切換淺色",
+                        "themeToggleTextDark": "切換深色",
+                        "exportBtn": "匯出備份",
+                        "importBtn": "導入備份",
+                        "resetBtn": "重置",
+                        "radarChartTitle": "📊 分類探索度 (雷達圖)",
+                        "badgeWallTitle": "🏆 徽章展示牆",
+                        "mapTitle": "縣市足跡地圖",
+                        "mapScrollHint": "💡 左右滑動以檢視完整地圖",
+                        "customAchTitle": "我的自訂成就",
+                        "addCustomAchBtn": "新增自訂成就",
+                        "customAchEmptyHint": "還沒有自訂成就。把官方清單沒有、但對你別具意義的旅行時刻記下來吧！（最多 10 個，會計入總成就與等級）",
+                        "searchPlaceholder": "搜尋成就名稱或說明描述...",
+                        "filterAllDiff": "所有難度",
+                        "filterDiff6": "★★★★★★ (隱藏)",
+                        "filterAllRarity": "所有稀有度",
+                        "filterAllStatus": "所有狀態",
+                        "filterStatusCompleted": "已解鎖",
+                        "filterStatusUncompleted": "未解鎖",
+                        "quickFilterLabel": "快速篩選徽章：",
+                        "quickFilterAll": "全部",
+                        "avatarModalTitle": "選擇頭像 Emojis",
+                        "closeBtn": "關閉",
+                        "shareModalTitle": "📸 生成個人旅行成就卡",
+                        "shareModalDesc": "你可以將此圖卡分享到社交媒體（如 Threads, IG 等），向大家炫耀你的台灣旅遊歷練！",
+                        "shareToLabel": "分享到：",
+                        "downloadPngBtn": "下載 PNG 圖片",
+                        "cancelBtn": "取消",
+                        "customAchModalTitleAdd": "🌟 新增自訂成就",
+                        "customAchModalTitleEdit": "✏️ 編輯自訂成就",
+                        "customAchNameLabel": "成就名稱（必填，30 字內）",
+                        "customAchDescLabel": "成就描述（選填，60 字內）",
+                        "customAchDiffLabel": "難度星級",
+                        "customAchDiff1": "★☆☆☆☆ (輕鬆達成)",
+                        "customAchDiff2": "★★☆☆☆ (小有挑戰)",
+                        "customAchDiff3": "★★★☆☆ (需要努力)",
+                        "customAchDiff4": "★★★★☆ (相當困難)",
+                        "customAchDiff5": "★★★★★ (畢生難忘)",
+                        "saveBtn": "儲存",
+                        "registerTitle": "🎒 探險家登錄",
+                        "registerDesc": "歡迎來到台灣旅行成就系統！請為您的手帳進行首次角色登錄：",
+                        "registerStep1": "1. 選擇起手頭像",
+                        "registerStep2": "2. 輸入您的暱稱",
+                        "registerPlaceholder": "例如：台灣旅人小明...",
+                        "registerBtn": "🎮 登錄完成，開始冒險！",
+                        "footerCredit": "© 2026 台灣旅行成就系統. All rights reserved. Created with 💖 for Taiwan Travelers.",
+                        "resetConfirm": "⚠️ 確定要重置所有旅遊成就與縣市足跡嗎？此動作無法復原！",
+                        "resetTitle": "進度重置",
+                        "resetDesc": "已清除所有勾選記錄",
+                        "importSuccessTitle": "導入成功",
+                        "importSuccessDesc": "你的旅遊進度已完全恢復",
+                        "importErrorTitle": "導入失敗",
+                        "importErrorDesc": "無效的備份檔案格式",
+                        "playerNameInputTitle": "點擊修改暱稱",
+                        "xpDisplaySuffix": "成就",
+                        "prefDisplayPrefix": "已踩點",
+                        "prefUnlockTitle": "拜訪打卡",
+                        "prefUnlockDesc": "已新增到訪足跡：{name}",
+                        "achUnlockTitle": "成就解除！",
+                        "customAchAddTitle": "已建立自訂成就",
+                        "customAchNameRequired": "請輸入成就名稱！",
+                        "customAchDeleteConfirm": "確定要刪除自訂成就「{name}」嗎？",
+                        "customAchLimitTitle": "自訂成就上限",
+                        "customAchLimitDesc": "最多只能建立 {limit} 個自訂成就",
+                        "badgeUnlockTitle": "解鎖榮譽徽章！",
+                        "badgeUnlockDesc": "{emoji} [{name}] 已加入收藏牆",
+                        "regSuccessTitle": "冒險開始！",
+                        "regSuccessDesc": "探險家 {name}，祝您台灣旅行愉快！",
+                        "shareCardNotifyTitle": "圖卡下載成功",
+                        "shareCardNotifyDesc": "歡迎分享到 Threads 或 Instagram！",
+                        "defaultPlayerName": "台灣探險家",
+                        "editBtnTitle": "編輯",
+                        "deleteBtnTitle": "刪除",
+                        "customAchLabel": "自訂",
+                        "customAchDefaultDesc": "由你親自訂立的專專成就。",
+                        "levelLabel": "等級",
+                        "shareCardTitle": "台灣旅行成就記錄卡",
+                        "totalUnlockRateLabel": "總成就解鎖率",
+                        "mapTitleLabel": "縣市足跡",
+                        "radarChartTitleLabel": "📊 分類探索度",
+                        "badgeWallTitleLabel": "🏆 解鎖榮譽徽章牆",
+                        "showcaseTitleLabel": "🌟 最引以為傲的冒險成就",
+                        "catLabel": "分類：",
+                        "showcaseEmptyLabel": "尚無解鎖此欄位之高級成就，趕快去旅行吧！",
+                        "shareCardFooter": "本成就卡由「台灣旅行成就系統」產出",
+                        "levelTitle0": "🌱 台灣新手",
+                        "levelTitle1": "🎒 自助旅行者",
+                        "levelTitle2": "✈ 台灣探索家",
+                        "levelTitle3": "🗾 台灣達人",
+                        "levelTitle4": "🎌 台灣專家",
+                        "levelTitle5": "👑 台灣通",
+                        "levelTitle6": "🏯 台灣旅行神",
+                        "cat-交通": "交通",
+                        "cat-美食": "美食",
+                        "cat-文化": "文化",
+                        "cat-自然": "自然",
+                        "cat-住宿": "住宿",
+                        "cat-購物": "購物",
+                        "cat-攝影": "攝影",
+                        "cat-祭典": "祭典",
+                        "cat-離島": "離島",
+                        "cat-極限挑戰": "極限挑戰",
+                        "reg-北部": "北部",
+                        "reg-中部": "中部",
+                        "reg-南部": "南部",
+                        "reg-東部": "東部",
+                        "reg-離島": "離島",
+                        "hiddenOverlayText": "🔒 STEAM 隱藏成就",
+                        "hiddenAchName": "??? 隱藏成就",
+                        "hiddenAchDesc": "解鎖或滑鼠懸停以揭曉內容。"
+            },
+            "en": {
+                        "title": "Taiwan Travel Achievements",
+                        "subtitle": "Explore Taiwan • Unlock Badges • Complete Your Travel Notebook",
+                        "japanTravelLink": "Japan Travel Achievements",
+                        "worldTravelLink": "Global Travel Achievements",
+                        "shareCardBtn": "Share Card",
+                        "themeToggleTextLight": "Light Theme",
+                        "themeToggleTextDark": "Dark Theme",
+                        "exportBtn": "Export Backup",
+                        "importBtn": "Import Backup",
+                        "resetBtn": "Reset",
+                        "radarChartTitle": "📊 Category Progress (Radar)",
+                        "badgeWallTitle": "🏆 Showcase Badge Wall",
+                        "mapTitle": "County Travel Map",
+                        "mapScrollHint": "💡 Scroll horizontally to view the full map",
+                        "customAchTitle": "My Custom Achievements",
+                        "addCustomAchBtn": "Add Custom Achievement",
+                        "customAchEmptyHint": "No custom achievements yet. Record your meaningful travel moments here! (Max 10, counts toward total achievements and level)",
+                        "searchPlaceholder": "Search achievements or descriptions...",
+                        "filterAllDiff": "All Difficulties",
+                        "filterDiff6": "★★★★★★ (Hidden)",
+                        "filterAllRarity": "All Rarities",
+                        "filterAllStatus": "All Status",
+                        "filterStatusCompleted": "Unlocked",
+                        "filterStatusUncompleted": "Locked",
+                        "quickFilterLabel": "Quick Filter by Badge:",
+                        "quickFilterAll": "All",
+                        "avatarModalTitle": "Choose Avatar Emoji",
+                        "closeBtn": "Close",
+                        "shareModalTitle": "📸 Generate Travel Achievement Card",
+                        "shareModalDesc": "You can share this card to social media (Threads, IG, etc.) to show off your Taiwan travel experiences!",
+                        "shareToLabel": "Share to:",
+                        "downloadPngBtn": "Download PNG",
+                        "cancelBtn": "Cancel",
+                        "customAchModalTitleAdd": "🌟 Add Custom Achievement",
+                        "customAchModalTitleEdit": "✏️ Edit Custom Achievement",
+                        "customAchNameLabel": "Name (Required, max 30 chars)",
+                        "customAchDescLabel": "Description (Optional, max 60 chars)",
+                        "customAchDiffLabel": "Difficulty Stars",
+                        "customAchDiff1": "★☆☆☆☆ (Easy)",
+                        "customAchDiff2": "★★☆☆☆ (Normal)",
+                        "customAchDiff3": "★★★☆☆ (Hard)",
+                        "customAchDiff4": "★★★★☆ (Very Hard)",
+                        "customAchDiff5": "★★★★★ (Unforgettable)",
+                        "saveBtn": "Save",
+                        "registerTitle": "🎒 Explorer Registration",
+                        "registerDesc": "Welcome to Taiwan Travel Achievements! Please register your explorer profile:",
+                        "registerStep1": "1. Choose Starter Avatar",
+                        "registerStep2": "2. Enter Your Nickname",
+                        "registerPlaceholder": "e.g., Taiwan Traveler...",
+                        "registerBtn": "🎮 Start Adventure!",
+                        "footerCredit": "© 2026 Taiwan Travel Achievements. All rights reserved. Created with 💖 for Taiwan Travelers.",
+                        "resetConfirm": "⚠️ Are you sure you want to reset all travel achievements and footprints? This action cannot be undone!",
+                        "resetTitle": "Progress Reset",
+                        "resetDesc": "Cleared all checked progress",
+                        "importSuccessTitle": "Import Successful",
+                        "importSuccessDesc": "Your travel progress has been fully restored",
+                        "importErrorTitle": "Import Failed",
+                        "importErrorDesc": "Invalid backup file format",
+                        "playerNameInputTitle": "Click to edit nickname",
+                        "xpDisplaySuffix": "Achievements",
+                        "prefDisplayPrefix": "Visited",
+                        "prefUnlockTitle": "Footprint Unlocked",
+                        "prefUnlockDesc": "Visited: {name}",
+                        "achUnlockTitle": "Achievement Unlocked!",
+                        "customAchAddTitle": "Custom Achievement Created",
+                        "customAchNameRequired": "Please enter achievement name!",
+                        "customAchDeleteConfirm": "Are you sure you want to delete custom achievement \"{name}\"?",
+                        "customAchLimitTitle": "Custom Achievement Limit",
+                        "customAchLimitDesc": "You can only create up to {limit} custom achievements.",
+                        "badgeUnlockTitle": "Badge Unlocked!",
+                        "badgeUnlockDesc": "{emoji} [{name}] has been added to your badge wall",
+                        "regSuccessTitle": "Adventure Started!",
+                        "regSuccessDesc": "Explorer {name}, have a wonderful trip in Taiwan!",
+                        "shareCardNotifyTitle": "Card Downloaded",
+                        "shareCardNotifyDesc": "Welcome to share on Threads or Instagram!",
+                        "defaultPlayerName": "Taiwan Explorer",
+                        "editBtnTitle": "Edit",
+                        "deleteBtnTitle": "Delete",
+                        "customAchLabel": "Custom",
+                        "customAchDefaultDesc": "A personal achievement created by you.",
+                        "levelLabel": "LEVEL",
+                        "shareCardTitle": "Taiwan Travel Achievement Card",
+                        "totalUnlockRateLabel": "Total Unlock Rate",
+                        "mapTitleLabel": "County Footprints",
+                        "radarChartTitleLabel": "📊 Category Progress",
+                        "badgeWallTitleLabel": "🏆 Honor Badge Wall",
+                        "showcaseTitleLabel": "🌟 Proudest Travel Achievements",
+                        "catLabel": "Category: ",
+                        "showcaseEmptyLabel": "No achievements unlocked for this slot yet. Go travel!",
+                        "shareCardFooter": "Generated by Taiwan Travel Achievements",
+                        "levelTitle0": "🌱 Taiwan Novice",
+                        "levelTitle1": "🎒 Solo Backpacker",
+                        "levelTitle2": "✈ Taiwan Explorer",
+                        "levelTitle3": "🗾 Taiwan Expert",
+                        "levelTitle4": "🎌 Taiwan Specialist",
+                        "levelTitle5": "👑 Taiwan Master",
+                        "levelTitle6": "🏯 Taiwan Travel Deity",
+                        "cat-交通": "Transit",
+                        "cat-美食": "Gourmet",
+                        "cat-文化": "Culture",
+                        "cat-自然": "Nature",
+                        "cat-住宿": "Lodging",
+                        "cat-購物": "Shopping",
+                        "cat-攝影": "Photo",
+                        "cat-祭典": "Festivals",
+                        "cat-離島": "Islands",
+                        "cat-極限挑戰": "Challenges",
+                        "reg-北部": "North",
+                        "reg-中部": "Central",
+                        "reg-南部": "South",
+                        "reg-東部": "East",
+                        "reg-離島": "Islands",
+                        "hiddenOverlayText": "🔒 STEAM Hidden Achievement",
+                        "hiddenAchName": "??? Achievement",
+                        "hiddenAchDesc": "Fulfill specific conditions to unlock.",
+                        "pref-short-keelung": "KL",
+                        "pref-short-taipei": "TP",
+                        "pref-short-newtaipei": "NT",
+                        "pref-short-taoyuan": "TY",
+                        "pref-short-hsinchucity": "HC",
+                        "pref-short-hsinchucounty": "HS",
+                        "pref-short-yilan": "IL",
+                        "pref-short-miaoli": "ML",
+                        "pref-short-taichung": "TC",
+                        "pref-short-changhua": "CH",
+                        "pref-short-nantou": "NT",
+                        "pref-short-yunlin": "YL",
+                        "pref-short-chiayicity": "CY",
+                        "pref-short-chiayicounty": "CS",
+                        "pref-short-tainan": "TN",
+                        "pref-short-kaohsiung": "KH",
+                        "pref-short-pingtung": "PT",
+                        "pref-short-hualien": "HL",
+                        "pref-short-taitung": "TT",
+                        "pref-short-penghu": "PH",
+                        "pref-short-kinmen": "KM",
+                        "pref-short-matsu": "MZ",
+                        "pref-name-keelung": "Keelung City",
+                        "pref-name-taipei": "Taipei City",
+                        "pref-name-newtaipei": "New Taipei City",
+                        "pref-name-taoyuan": "Taoyuan City",
+                        "pref-name-hsinchucity": "Hsinchu City",
+                        "pref-name-hsinchucounty": "Hsinchu County",
+                        "pref-name-yilan": "Yilan County",
+                        "pref-name-miaoli": "Miaoli County",
+                        "pref-name-taichung": "Taichung City",
+                        "pref-name-changhua": "Changhua County",
+                        "pref-name-nantou": "Nantou County",
+                        "pref-name-yunlin": "Yunlin County",
+                        "pref-name-chiayicity": "Chiayi City",
+                        "pref-name-chiayicounty": "Chiayi County",
+                        "pref-name-tainan": "Tainan City",
+                        "pref-name-kaohsiung": "Kaohsiung City",
+                        "pref-name-pingtung": "Pingtung County",
+                        "pref-name-hualien": "Hualien County",
+                        "pref-name-taitung": "Taitung County",
+                        "pref-name-penghu": "Penghu County",
+                        "pref-name-kinmen": "Kinmen County",
+                        "pref-name-matsu": "Lienchiang County",
+                        "badge-name-railfan": "Transit Master",
+                        "badge-name-foodie": "Night Market Foodie",
+                        "badge-name-culture": "Culture Explorer",
+                        "badge-name-nature": "Mountain Hiker",
+                        "badge-name-island": "Island Hopper",
+                        "badge-name-photographer": "Scenic Photographer",
+                        "badge-name-festival": "Festival Buff",
+                        "badge-name-challenger": "Taiwan Hardcore",
+                        "badge-name-lodger": "Lodging Lover",
+                        "badge-name-shrine": "Temple Pilgrim",
+                        "badge-desc-railfan": "Unlock 6 transit/railway achievements",
+                        "badge-desc-foodie": "Unlock 8 gourmet achievements",
+                        "badge-desc-culture": "Unlock 6 culture/history achievements",
+                        "badge-desc-nature": "Unlock 6 nature/hiking achievements",
+                        "badge-desc-island": "Unlock 4 island achievements",
+                        "badge-desc-photographer": "Unlock 5 photography achievements",
+                        "badge-desc-festival": "Unlock 4 festival/event achievements",
+                        "badge-desc-challenger": "Unlock 4 challenge achievements",
+                        "badge-desc-lodger": "Unlock 4 lodging achievements",
+                        "badge-desc-shrine": "Unlock 4 temple/religion achievements",
+                        "ach-name-1": "Ride Taiwan High Speed Rail 🚄",
+                        "ach-desc-1": "Experience the North-South high-speed rail, connecting Taiwan in a single day.",
+                        "ach-name-2": "Take Taipei Metro 🚇",
+                        "ach-desc-2": "Swipe your EasyCard and ride the extensive underground metro network in Taipei.",
+                        "ach-name-3": "Take Kaohsiung Metro 🚇",
+                        "ach-desc-3": "Ride the metro to Formosa Boulevard Station and admire the famous Dome of Light.",
+                        "ach-name-4": "Take Taichung Metro 🚇",
+                        "ach-desc-4": "Ride the green line in Taichung and view the city from the elevated tracks.",
+                        "ach-name-5": "Ride Danhai or Ankeng LRT 🚃",
+                        "ach-desc-5": "Experience the unique light rail and enjoy the slow-paced suburban views in northern Taiwan.",
+                        "ach-name-6": "YouBike Town Cruising 🚲",
+                        "ach-desc-6": "Rent a YouBike for a cross-county trip or a leisurely cruise through local towns.",
+                        "ach-name-7": "Ride a Scooter 🛵",
+                        "ach-desc-7": "Rent a scooter near a train station to feel the wind and explore mountain roads.",
+                        "ach-name-8": "Alishan Forest Railway 🚂",
+                        "ach-desc-8": "Ride the century-old narrow-gauge forest railway to Chushan or Shenmu station.",
+                        "ach-name-9": "Take the Ferry 🚢",
+                        "ach-desc-9": "Take a ferry across the Tamsui River to Bali or Kaohsiung Harbor to Cijin.",
+                        "ach-name-10": "Rail Round-the-Island 🚃",
+                        "ach-desc-10": "Complete a full circle around Taiwan via the TRA network accompanied by train whistles.",
+                        "ach-name-11": "Savor Taiwanese Beef Noodles 🍜",
+                        "ach-desc-11": "Have a bowl of stewed beef noodles with pickled mustard greens in rich broth.",
+                        "ach-name-12": "Enjoy Braised Pork Rice 🍛",
+                        "ach-desc-12": "Enjoy a bowl of Taiwanese comfort food featuring tender braised pork over warm rice.",
+                        "ach-name-13": "Try Oyster Omelet 🍳",
+                        "ach-desc-13": "Savor a night market classic made of oysters, eggs, garland chrysanthemum, and starch.",
+                        "ach-name-14": "Fried Chicken + Bubble Tea 🧋",
+                        "ach-desc-14": "Take a big bite of crispy, larger-than-face fried chicken paired with a sweet cup of pearl milk tea.",
+                        "ach-name-15": "Savor Xiao Long Bao 🥟",
+                        "ach-desc-15": "Bite into piping hot, soup-filled xiao long bao served with vinegar and shredded ginger.",
+                        "ach-name-16": "Challenge Stinky Tofu 🧆",
+                        "ach-desc-16": "Try crispy-on-the-outside, tender-on-the-inside stinky tofu loaded with sweet and sour pickled cabbage.",
+                        "ach-name-17": "Taiwanese Re Chao (Stir-fry) 🍻",
+                        "ach-desc-17": "Sit on low stools around a round table, order Kung Pao Chicken, and chat over cold beer.",
+                        "ach-name-18": "Traditional Breakfast Shop 🥞",
+                        "ach-desc-18": "Start your morning with egg crepes, deep-fried dough sticks, clay-oven rolls, and soy milk.",
+                        "ach-name-19": "Try Wanluan Pork Knuckles 🍖",
+                        "ach-desc-19": "Savor chewy, flavorful pork knuckles in Pingtung's Wanluan dipped in special garlic soy sauce.",
+                        "ach-name-20": "Tainan Fresh Beef Soup 🥣",
+                        "ach-desc-20": "Drink a bowl of sweet, hot soup poured over fresh sliced raw beef in the early morning.",
+                        "ach-name-21": "Pray at Taipei Longshan Temple ⛩️",
+                        "ach-desc-21": "Visit Wanhua Longshan Temple to admire the historic architecture, stone carvings, and incense.",
+                        "ach-name-22": "Visit Dajia Jenn Lann Temple ⛩️",
+                        "ach-desc-22": "Pay homage at the center of the Dajia Mazu pilgrimage in Taichung to experience religious devotion.",
+                        "ach-name-23": "Stroll Jiufen Old Street 🏮",
+                        "ach-desc-23": "Walk up the stone steps of Shuqi Road, taking in red lanterns and sea views.",
+                        "ach-name-24": "Visit National Palace Museum 🏛️",
+                        "ach-desc-24": "View Jadeite Cabbage, Meat-shaped Stone, and other historical Chinese treasures in Taipei.",
+                        "ach-name-25": "Visit Chiang Kai-shek Memorial 🏛️",
+                        "ach-desc-25": "View the blue-and-white monument, archway, and watch the military guards change hourly.",
+                        "ach-name-26": "Visit Anping Fort 🏰",
+                        "ach-desc-26": "Visit the ruins of Fort Zeelandia from the Dutch era in Tainan to touch Taiwan's history.",
+                        "ach-name-27": "Collect Commemorative Stamps 📖",
+                        "ach-desc-27": "Bring a notebook and stamp it at railway stations and visitor centers around Taiwan.",
+                        "ach-name-28": "Wander Lukang Old Street 🏘️",
+                        "ach-desc-28": "Weave through red brick lanes, visit Breast-touching Alley, and feel the old-town vibe.",
+                        "ach-name-29": "Visit Tainan Confucius Temple 🛕",
+                        "ach-desc-29": "Visit the First Academy of Taiwan, appreciating red walls, ancient trees, and Confucian aura.",
+                        "ach-name-30": "Meinong Hakka Culture 🌂",
+                        "ach-desc-30": "Experience Hakka Lei-cha (pestle tea) and admire hand-painted oil-paper umbrellas in Kaohsiung.",
+                        "ach-name-31": "Taipei 101 Observatory 🏢",
+                        "ach-desc-31": "Take the high-speed elevator to look down upon the magnificent Taipei basin.",
+                        "ach-name-32": "Visit Sun Moon Lake 🏞️",
+                        "ach-desc-32": "Rent a bike to ride along the lake, which is recognized as one of the most beautiful cycling routes globally.",
+                        "ach-name-33": "Stroll Alishan Giants 🌲",
+                        "ach-desc-33": "Walk the forest boardwalk to breathe fresh air and meet giant trees over a thousand years old.",
+                        "ach-name-34": "Visit Taroko Swallow Grotto 🪨",
+                        "ach-desc-34": "Witness the spectacular marble canyon cliff cut by the rapid river flow.",
+                        "ach-name-35": "Yehliu Queen's Head 🗿",
+                        "ach-desc-35": "See the Queen's Head and Candlestick Rocks shaped by wind and sea erosion on the north coast.",
+                        "ach-name-36": "Explore Yilan Taipingshan 🌲",
+                        "ach-desc-36": "Walk the misty forest trails filled with cypress fragrance and view Cueifong Lake.",
+                        "ach-name-37": "Eluanbi Lighthouse 🌅",
+                        "ach-desc-37": "Check in at the southernmost lighthouse in Kenting, looking out to Bashi Channel.",
+                        "ach-name-38": "Yangmingshan Xiaoyoukeng 🌋",
+                        "ach-desc-38": "Stand by the fumaroles, hearing the steaming hiss and seeing the sulfur gases rise.",
+                        "ach-name-39": "Cross Taitung Sansiantai 🌉",
+                        "ach-desc-39": "Walk across the iconic eight-arch bridge to the offshore volcanic islet.",
+                        "ach-name-40": "Alishan Sunrise & Sea of Clouds 🌅",
+                        "ach-desc-40": "Watch the golden sun rise over the mountains, illuminating the rolling sea of clouds.",
+                        "ach-name-41": "Stay in Scenic B&B 🏡",
+                        "ach-desc-41": "Stay at a beautiful homestay with mountain views in Jiufen or Cingjing Farm.",
+                        "ach-name-42": "Soak in Hot Spring Hotel ♨️",
+                        "ach-desc-42": "Stay at a hot spring hotel in Beitou, Jiaoxi, or Guguan to relax in mineral-rich waters.",
+                        "ach-name-43": "Go Camping or Glamping ⛺",
+                        "ach-desc-43": "Pitch a tent in the wild or enjoy all-inclusive luxury glamping close to nature.",
+                        "ach-name-44": "Stay in Five-Star Hotel 🏨",
+                        "ach-desc-44": "Book a night at a luxury five-star hotel in Taiwan to enjoy top amenities.",
+                        "ach-name-45": "Stay in Backpacker Hostel 🎒",
+                        "ach-desc-45": "Stay in a bunk bed at a youth hostel and exchange stories with travelers.",
+                        "ach-name-46": "Experience Taiwan Motel 🚗",
+                        "ach-desc-46": "Experience Taiwan's unique high-end motels with spacious rooms and jacuzzis.",
+                        "ach-name-47": "Old House Homestay 🏚️",
+                        "ach-desc-47": "Sleep in a renovated Minnan or Japanese-style old house in Tainan or Dadataocheng.",
+                        "ach-name-48": "Stay in Forest Cabin 🪵",
+                        "ach-desc-48": "Stay in a wooden cabin in forest parks like Xitou or Taipingshan.",
+                        "ach-name-49": "Oceanfront View Lodging 🌊",
+                        "ach-desc-49": "Stay at a seaside hotel in Kenting or Hualien to sleep to the sound of waves.",
+                        "ach-name-50": "Transit Hub Overnight ✈️",
+                        "ach-desc-50": "Spend a night near Taoyuan Airport or Taipei Main Station due to travel connections.",
+                        "ach-name-51": "Midnight Eslite Bookstore 📚",
+                        "ach-desc-51": "Visit Taiwan's iconic Eslite Bookstore late at night to enjoy literary vibes.",
+                        "ach-name-52": "Shop at PX Mart 🛒",
+                        "ach-desc-52": "Shop at PX Mart supermarket for snacks, instant noodles, and local beverages.",
+                        "ach-name-53": "Buy Pineapple Cakes 🍍",
+                        "ach-desc-53": "Purchase delicious pineapple cakes from SunnyHills or Chia Te as souvenirs.",
+                        "ach-name-54": "Purchase High Mountain Tea 🍵",
+                        "ach-desc-54": "Buy Alishan Oolong or Dongding Oolong tea to savor rich Taiwanese tea culture.",
+                        "ach-name-55": "Treasure Hunt at Dihua Street 🛍️",
+                        "ach-desc-55": "Walk along Dihua Street in Dadaocheng to buy dried fruits, tea, and souvenirs.",
+                        "ach-name-56": "Shop at Large Outlets 🛍️",
+                        "ach-desc-56": "Visit Mitsui Outlet Park Linkou or Gloria Outlets Taoyuan for discounted shopping.",
+                        "ach-name-57": "Convenience Store Tea Egg 🥚",
+                        "ach-desc-57": "Grab a hot, fragrant tea egg at any convenience store in Taiwan.",
+                        "ach-name-58": "Buy a Scratch Card 🎫",
+                        "ach-desc-58": "Stop by a lottery shop to buy a ticket or scratch card to test your luck.",
+                        "ach-name-59": "Traditional Shop in Old Street 🏺",
+                        "ach-desc-59": "Buy handmade soap, nostalgic toys, or local agricultural produce in old streets.",
+                        "ach-name-60": "Buy Original Creative Goods 🎨",
+                        "ach-desc-60": "Buy original designs and crafts at Songshan or Huashan Creative Parks.",
+                        "ach-name-61": "Shoot Taipei 101 from Xiangshan 🌃",
+                        "ach-desc-61": "Climb Xiangshan's Six Giant Rocks to photograph Taipei 101 and the city lights.",
+                        "ach-name-62": "Kaohsiung Harbor Night View ⚓",
+                        "ach-desc-62": "Photograph the futuristic Music Center and lights reflected in Kaohsiung Harbor.",
+                        "ach-name-63": "Sun Moon Lake Sunrise/Sunset 🌅",
+                        "ach-desc-63": "Capture the misty water or beautiful orange sunset at Chaowu or Shuishe Pier.",
+                        "ach-name-64": "Alishan Forest Railway & Cherry Blossoms 🌸",
+                        "ach-desc-64": "Stand at Zhaoping curve to shoot the red train passing under blooming cherry trees.",
+                        "ach-name-65": "Hehuanshan Starry Galaxy 🌌",
+                        "ach-desc-65": "Set up a tripod at Wuling or Shimenshan to photograph the Summer Milky Way.",
+                        "ach-name-66": "Jiufen Red Lanterns at Night 🏮",
+                        "ach-desc-66": "Capture the magical vibe of Jiufen's red lanterns glowing in the evening.",
+                        "ach-name-67": "Laomei Green Reef in Spring 🌊",
+                        "ach-desc-67": "Visit Shimen Laomei in spring to photograph bright green algae coating the stone troughs.",
+                        "ach-name-68": "Chimei Museum Grandeur 🏛️",
+                        "ach-desc-68": "Capture the majestic, European-style Chimei Museum and Apollo Fountain in Tainan.",
+                        "ach-name-69": "Pingxi Line Colorful Train 🚂",
+                        "ach-desc-69": "Photograph local trains passing very close to the houses along Shifen Old Street.",
+                        "ach-name-70": "Historic Chihkan Tower 🏛️",
+                        "ach-desc-70": "Photograph the traditional Chinese dual-roof design and ancient stone tablets in Tainan.",
+                        "ach-name-71": "Taipei 101 NYE Fireworks 🎆",
+                        "ach-desc-71": "Count down to the new year and watch the spectacular fireworks burst from Taipei 101.",
+                        "ach-name-72": "Taitung Hot Air Balloon Festival 🎈",
+                        "ach-desc-72": "Watch colorful, uniquely shaped hot air balloons fly over Luye Highland.",
+                        "ach-name-73": "Christmasland in New Taipei City 🎄",
+                        "ach-desc-73": "Visit Cixin Plaza in Banqiao to enjoy the grandest Christmas light show in Taiwan.",
+                        "ach-name-74": "Yanshui Beehive Fireworks 🎆",
+                        "ach-desc-74": "Wear a full-face helmet and join the Mazu palanquin procession to face the beehive firecrackers.",
+                        "ach-name-75": "Release Sky Lantern in Pingxi 🏮",
+                        "ach-desc-75": "Write wishes on a sky lantern and watch it ascend into the night sky over Shifen tracks.",
+                        "ach-name-76": "Mazu Pilgrimage Experience ⛩️",
+                        "ach-desc-76": "Join the Dajia or Baishatun Mazu pilgrimage, feeling the energy and local hospitality.",
+                        "ach-name-77": "Donggang King Boat Ceremony ⛵",
+                        "ach-desc-77": "Witness the spectacular triennial burning of the divine King Boat in Pingtung.",
+                        "ach-name-78": "Indigenous Harvest Festival 🥁",
+                        "ach-desc-78": "Join indigenous harvest dances and celebrations while respecting local traditions.",
+                        "ach-name-79": "Attend Taiwan Lantern Festival 🏮",
+                        "ach-desc-79": "Visit the annual national lantern festival to view giant zodiac lantern displays.",
+                        "ach-name-80": "Taitung Handan Firecracker Ceremony 🔥",
+                        "ach-desc-80": "See the bare-chested Lord Handan ride a palanquin under a barrage of exploding firecrackers.",
+                        "ach-name-81": "Visit Penghu Islands 🏝️",
+                        "ach-desc-81": "Visit Penghu by boat or plane to see Guanyinting Rainbow Bridge and eat cactus ice.",
+                        "ach-name-82": "Visit Kinmen Islands 🪨",
+                        "ach-desc-82": "Tour wartime ruins, Minnan historical mansions, and taste sorghum liquor.",
+                        "ach-name-83": "Visit Matsu Islands 🌊",
+                        "ach-desc-83": "Walk around Qinbi village in Matsu and view the glowing Blue Tears in the sea.",
+                        "ach-name-84": "Visit Xiaoliuqiu 🐢",
+                        "ach-desc-84": "Snorkel off the shores of Xiaoliuqiu island to see wild sea turtles swim nearby.",
+                        "ach-name-85": "Visit Green Island 🏝️",
+                        "ach-desc-85": "Snorkel in clear waters and enjoy the rare saltwater hot spring by the ocean.",
+                        "ach-name-86": "Journey to Orchid Island (Lanyu) 🛶",
+                        "ach-desc-86": "Discover Tao culture, view traditional tatala boats, and dive in pure waters.",
+                        "ach-name-87": "Walk Military Tunnels 🪖",
+                        "ach-desc-87": "Walk through Zhaishan Tunnel in Kinmen or Tunnel 88 in Matsu.",
+                        "ach-name-88": "Scooter Cruise on Islands 🛵",
+                        "ach-desc-88": "Cruise down quiet island roads without traffic lights in Green Island or Penghu.",
+                        "ach-name-89": "Try Island Specialties 🍧",
+                        "ach-desc-89": "Savor Matsu old-wine noodles, Kinmen fried instant noodles, and Penghu squid noodles.",
+                        "ach-name-90": "Sunset on Offshore Islands 🌅",
+                        "ach-desc-90": "Watch the sun dip below the ocean horizon from Fancuanbi or Jiangongyu.",
+                        "ach-name-91": "Bicycle Round-the-Island 🚴‍♂️",
+                        "ach-desc-91": "Complete a cycling loop around Taiwan, overcoming physical fatigue on open roads.",
+                        "ach-name-92": "Cycle Up to Wuling 🚴‍♂️",
+                        "ach-desc-92": "Cycle from Puli or Taroko to Wuling, the highest paved road in Taiwan at 3275m.",
+                        "ach-name-93": "Swim Across Sun Moon Lake 🏊‍♂️",
+                        "ach-desc-93": "Swim across the 3000-meter open water of Sun Moon Lake during the annual mass event.",
+                        "ach-name-94": "Climb a Baiyue Mountain 🥾",
+                        "ach-desc-94": "Summit one of Taiwan's 100 designated peaks to stand above the clouds.",
+                        "ach-name-95": "Summit Mt. Jade (Yushan) 🏔️",
+                        "ach-desc-95": "Climb to the highest point in Taiwan and Northeast Asia at 3952m.",
+                        "ach-name-96": "Summit Mt. Syue (Xueshan) 🏔️",
+                        "ach-desc-96": "Climb Taiwan's second-highest peak and witness the glacial cirque valley.",
+                        "ach-name-97": "Walk Around Taiwan 🥾",
+                        "ach-desc-97": "Walk the entire coastline of Taiwan on foot with pure grit and determination.",
+                        "ach-name-98": "Visit Four Extreme Lighthouses 📍",
+                        "ach-desc-98": "Visit the extreme North (Fugui Cape), East (Sandiao Cape), South (Eluanbi), and West (Guosheng Port) lighthouses.",
+                        "ach-name-99": "Complete One Day Twin Towers 🚴‍♂️",
+                        "ach-desc-99": "Ride a bicycle from Fugui Cape Lighthouse to Eluanbi Lighthouse within 24 hours (approx. 520km).",
+                        "ach-name-100": "Unlock Footprints in All 22 Counties 🗺️",
+                        "ach-desc-100": "Set foot in all 22 administrative divisions of Taiwan, completing your map."
+            },
+            "ja": {
+                        "title": "台湾旅行アチーブメントシステム",
+                        "subtitle": "宝島の足跡を探索 • 冒険バッジを解鎖 • 台湾旅行手帳を完成させよう",
+                        "japanTravelLink": "日本旅行成就系統",
+                        "worldTravelLink": "環球旅行成就系統",
+                        "shareCardBtn": "カードをシェア",
+                        "themeToggleTextLight": "ライトテーマ",
+                        "themeToggleTextDark": "ダークテーマ",
+                        "exportBtn": "データをエクスポート",
+                        "importBtn": "データをインポート",
+                        "resetBtn": "リセット",
+                        "radarChartTitle": "📊 分類別探索度 (レーダーチャート)",
+                        "badgeWallTitle": "🏆 バッジコレクション",
+                        "mapTitle": "県・市足跡マップ",
+                        "mapScrollHint": "💡 左右にスクロールしてマップ全体を表示",
+                        "customAchTitle": "カスタムアチーブメント",
+                        "addCustomAchBtn": "アチーブメントを追加",
+                        "customAchEmptyHint": "カスタムアチーブメントはまだありません。あなただけの特別な旅の瞬間を記録しましょう！（最大10個、合計アチーブメント数とレベルにカウントされます）",
+                        "searchPlaceholder": "アチーブメント名または説明で検索...",
+                        "filterAllDiff": "すべての難易度",
+                        "filterDiff6": "★★★★★★ (隠しアチーブメント)",
+                        "filterAllRarity": "すべてのレア度",
+                        "filterAllStatus": "すべての状態",
+                        "filterStatusCompleted": "解鎖済み",
+                        "filterStatusUncompleted": "未解鎖",
+                        "quickFilterLabel": "バッジでクイックフィルター：",
+                        "quickFilterAll": "すべて",
+                        "avatarModalTitle": "アバター用絵文字を選択",
+                        "closeBtn": "閉じる",
+                        "shareModalTitle": "📸 旅行アチーブメントカードを生成",
+                        "shareModalDesc": "このカードをSNS（Threads、Instagramなど）にシェアして、あなたの台湾旅行の軌跡をみんなに見せましょう！",
+                        "shareToLabel": "シェア先：",
+                        "downloadPngBtn": "PNG画像をダウンロード",
+                        "cancelBtn": "キャンセル",
+                        "customAchModalTitleAdd": "🌟 カスタムアチーブメントを追加",
+                        "customAchModalTitleEdit": "✏️ カスタムアチーブメントを編集",
+                        "customAchNameLabel": "アチーブメント名（必須、30文字以内）",
+                        "customAchDescLabel": "説明（任意、60文字以内）",
+                        "customAchDiffLabel": "難易度",
+                        "customAchDiff1": "★☆☆☆☆ (簡単)",
+                        "customAchDiff2": "★★☆☆☆ (普通)",
+                        "customAchDiff3": "★★★☆☆ (難しい)",
+                        "customAchDiff4": "★★★★☆ (非常に難しい)",
+                        "customAchDiff5": "★★★★★ (一生の思い出)",
+                        "saveBtn": "保存",
+                        "registerTitle": "🎒 冒険者の登録",
+                        "registerDesc": "台湾旅行アチーブメントシステムへようこそ！あなたのプロフィールを登録してください：",
+                        "registerStep1": "1. 初期アバターを選択",
+                        "registerStep2": "2. ニックネームを入力",
+                        "registerPlaceholder": "例：台湾の旅人...",
+                        "registerBtn": "🎮 冒険を始める！",
+                        "footerCredit": "© 2026 台湾旅行アチーブメントシステム. All rights reserved. Created with 💖 for Taiwan Travelers.",
+                        "resetConfirm": "⚠️ すべてのアチーブメントと足跡をリセットしますか？この操作は取り消せません！",
+                        "resetTitle": "進捗のリセット",
+                        "resetDesc": "すべての進捗をクリアしました",
+                        "importSuccessTitle": "インポート成功",
+                        "importSuccessDesc": "旅行の進捗が完全に復元されました",
+                        "importErrorTitle": "インポート失敗",
+                        "importErrorDesc": "無効なバックアップファイル形式です",
+                        "playerNameInputTitle": "クリックしてニックネームを編集",
+                        "xpDisplaySuffix": "アチーブメント",
+                        "prefDisplayPrefix": "訪問済み",
+                        "prefUnlockTitle": "足跡を解鎖！",
+                        "prefUnlockDesc": "訪問地：{name}",
+                        "achUnlockTitle": "アチーブメント達成！",
+                        "customAchAddTitle": "カスタムアチーブメントを作成しました",
+                        "customAchNameRequired": "アチーブメント名を入力してください！",
+                        "customAchDeleteConfirm": "カスタムアチーブメント「{name}」を削除しますか？",
+                        "customAchLimitTitle": "カスタム上限に達しました",
+                        "customAchLimitDesc": "作成できるカスタムアチーブメントは最大 {limit} 個までです。",
+                        "badgeUnlockTitle": "バッジ獲得！",
+                        "badgeUnlockDesc": "{emoji} [{name}] がバッジ壁に追加されました",
+                        "regSuccessTitle": "冒険スタート！",
+                        "regSuccessDesc": "冒険者 {name} さん、台湾旅行を楽しんでください！",
+                        "shareCardNotifyTitle": "カードダウンロード完了",
+                        "shareCardNotifyDesc": "ThreadsやInstagramでシェアしましょう！",
+                        "defaultPlayerName": "台湾冒険者",
+                        "editBtnTitle": "編集",
+                        "deleteBtnTitle": "削除",
+                        "customAchLabel": "カスタム",
+                        "customAchDefaultDesc": "あなたが作成した特別なアチーブメント。",
+                        "levelLabel": "レベル",
+                        "shareCardTitle": "台湾旅行アチーブメント記録カード",
+                        "totalUnlockRateLabel": "総アチーブメント達成率",
+                        "mapTitleLabel": "訪問した県・市",
+                        "radarChartTitleLabel": "📊 分類別探索度",
+                        "badgeWallTitleLabel": "🏆 獲得した名誉バッジ",
+                        "showcaseTitleLabel": "🌟 最も誇りに思う冒険",
+                        "catLabel": "カテゴリー：",
+                        "showcaseEmptyLabel": "この枠に設定できる高度なアチーブメントがまだありません。旅に出かけましょう！",
+                        "shareCardFooter": "生成元：台湾旅行アチーブメントシステム",
+                        "levelTitle0": "🌱 台湾ビギナー",
+                        "levelTitle1": "🎒 ソロバックパッカー",
+                        "levelTitle2": "✈ 台湾エクスプローラー",
+                        "levelTitle3": "🗾 台湾達人",
+                        "levelTitle4": "🎌 台湾スペシャリスト",
+                        "levelTitle5": "👑 台湾マスター",
+                        "levelTitle6": "🏯 台湾旅行の神",
+                        "cat-交通": "交通",
+                        "cat-美食": "グルメ",
+                        "cat-文化": "文化",
+                        "cat-自然": "自然",
+                        "cat-住宿": "宿泊",
+                        "cat-購物": "ショッピング",
+                        "cat-攝影": "写真",
+                        "cat-祭典": "祭り",
+                        "cat-離島": "離島",
+                        "cat-極限挑戰": "極限挑戦",
+                        "reg-北部": "北部",
+                        "reg-中部": "中部",
+                        "reg-南部": "南部",
+                        "reg-東部": "東部",
+                        "reg-離島": "離島",
+                        "hiddenOverlayText": "🔒 STEAM隠しアチーブメント",
+                        "hiddenAchName": "??? 隠しアチーブメント",
+                        "hiddenAchDesc": "解鎖するか、マウスホバーで内容を表示します。",
+                        "pref-short-keelung": "基隆",
+                        "pref-short-taipei": "台北",
+                        "pref-short-newtaipei": "新北",
+                        "pref-short-taoyuan": "桃園",
+                        "pref-short-hsinchucity": "竹市",
+                        "pref-short-hsinchucounty": "竹県",
+                        "pref-short-yilan": "宜蘭",
+                        "pref-short-miaoli": "苗栗",
+                        "pref-short-taichung": "台中",
+                        "pref-short-changhua": "彰化",
+                        "pref-short-nantou": "南投",
+                        "pref-short-yunlin": "雲林",
+                        "pref-short-chiayicity": "嘉市",
+                        "pref-short-chiayicounty": "嘉県",
+                        "pref-short-tainan": "台南",
+                        "pref-short-kaohsiung": "高雄",
+                        "pref-short-pingtung": "屏東",
+                        "pref-short-hualien": "花蓮",
+                        "pref-short-taitung": "台東",
+                        "pref-short-penghu": "澎湖",
+                        "pref-short-kinmen": "金門",
+                        "pref-short-matsu": "連江",
+                        "pref-name-keelung": "基隆市",
+                        "pref-name-taipei": "台北市",
+                        "pref-name-newtaipei": "新北市",
+                        "pref-name-taoyuan": "桃園市",
+                        "pref-name-hsinchucity": "新竹市",
+                        "pref-name-hsinchucounty": "新竹県",
+                        "pref-name-yilan": "宜蘭県",
+                        "pref-name-miaoli": "苗栗県",
+                        "pref-name-taichung": "台中市",
+                        "pref-name-changhua": "彰化県",
+                        "pref-name-nantou": "南投県",
+                        "pref-name-yunlin": "雲林県",
+                        "pref-name-chiayicity": "嘉義市",
+                        "pref-name-chiayicounty": "嘉義県",
+                        "pref-name-tainan": "台南市",
+                        "pref-name-kaohsiung": "高雄市",
+                        "pref-name-pingtung": "屏東県",
+                        "pref-name-hualien": "花蓮県",
+                        "pref-name-taitung": "台東県",
+                        "pref-name-penghu": "澎湖県",
+                        "pref-name-kinmen": "金門県",
+                        "pref-name-matsu": "連江県",
+                        "badge-name-railfan": "交通・鉄道達人",
+                        "badge-name-foodie": "夜市グルメ王",
+                        "badge-name-culture": "歴史文化探訪家",
+                        "badge-name-nature": "自然山岳愛好家",
+                        "badge-name-island": "離島トラベラー",
+                        "badge-name-photographer": "風景写真家",
+                        "badge-name-festival": "祭りマニア",
+                        "badge-name-challenger": "台湾ハードコア",
+                        "badge-name-lodger": "宿泊マニア",
+                        "badge-name-shrine": "巡礼者",
+                        "badge-desc-railfan": "交通/鉄道関連のアチーブメントを6個解鎖",
+                        "badge-desc-foodie": "グルメ関連のアチーブメントを8個解鎖",
+                        "badge-desc-culture": "歴史/文化関連のアチーブメントを6個解鎖",
+                        "badge-desc-nature": "自然/ハイキング関連のアチーブメントを6個解鎖",
+                        "badge-desc-island": "離島関連のアチーブメントを4個解鎖",
+                        "badge-desc-photographer": "写真関連のアチーブメントを5個解鎖",
+                        "badge-desc-festival": "祭り/イベント関連のアチーブメントを4個解鎖",
+                        "badge-desc-challenger": "挑戦関連のアチーブメントを4個解鎖",
+                        "badge-desc-lodger": "宿泊関連のアチーブメントを4個解鎖",
+                        "badge-desc-shrine": "お寺/宗教関連のアチーブメントを4個解鎖",
+                        "ach-name-1": "台湾新幹線（高鐵）に乗車 🚄",
+                        "ach-desc-1": "南北を繋ぐ高速鉄道を体験し、一日生活圏の旅を楽しもう。",
+                        "ach-name-2": "台北捷運（メトロ）に乗車 🚇",
+                        "ach-desc-2": "悠遊カード（EasyCard）で改札を通り、台北と新北を網羅する地下鉄網を体験。",
+                        "ach-name-3": "高雄捷運（メトロ）に乗車 🚇",
+                        "ach-desc-3": "メトロで美麗島駅を訪れ、世界的に有名なステンドグラスアート「光之穹頂」を鑑賞。",
+                        "ach-name-4": "台中捷運（メトロ）に乗車 🚇",
+                        "ach-desc-4": "台中でグリーンラインに乗車し、高架を走る車窓から街の緑を楽しもう。",
+                        "ach-name-5": "淡海または安坑ライトレールに乗車 🚃",
+                        "ach-desc-5": "特色あるLRTに乗車し、北台湾ののどかな沿線風景をのんびり楽しむ。",
+                        "ach-name-6": "YouBikeで街巡り 🚲",
+                        "ach-desc-6": "公共自転車YouBikeをレンタルし、県・市をまたぐサイクリングや下町巡りを楽しむ。",
+                        "ach-name-7": "レンタルバイクで山道を走る 🛵",
+                        "ach-desc-7": "駅前でスクーターを借りて、風を感じながら美しい山海を巡る台湾式移動を体験。",
+                        "ach-name-8": "阿里山森林鉄道に乗車 🚂",
+                        "ach-desc-8": "百年の歴史を持つ登山鉄道に乗り、霧深き森林を抜けて祝山駅や神木駅へ。",
+                        "ach-name-9": "フェリーで八里または旗津へ 🚢",
+                        "ach-desc-9": "フェリーで淡水河を渡り八里へ、または高雄港を渡り旗津へ行き、海風と夕日を楽しむ。",
+                        "ach-name-10": "電車で台湾一周 🚃",
+                        "ach-desc-10": "台湾鉄路（台鉄）を乗り継ぎ、汽笛を聞きながら台湾本島を一周する壮挙を達成する。",
+                        "ach-name-11": "台湾牛肉麺を味わう 🍜",
+                        "ach-desc-11": "じっくり煮込んだ牛肉と高菜、濃厚なスープが絡み合う国民的麺料理を堪能する。",
+                        "ach-name-12": "魯肉飯（ルーローハン）を頬張る 🍛",
+                        "ach-desc-12": "コラーゲンたっぷりで甘辛いタレがたまらない、台湾ソウルフードを味わう。",
+                        "ach-name-13": "牡蠣オムレツ（蚵仔煎）🍳",
+                        "ach-desc-13": "牡蠣、卵、春菊を生地と焼き上げ、甘酸っぱい特製タレをかけた夜市の定番アツアツ料理。",
+                        "ach-name-14": "ジーパイとタピオカミルクティー 🧋",
+                        "ach-desc-14": "顔より大きいサクサクのフライドチキン（鶏排）とタピオカミルクティーの最強コンビ。",
+                        "ach-name-15": "薄皮小籠包を堪能する 🥟",
+                        "ach-desc-15": "箸を入れると溢れ出るアツアツのスープが絶品の小籠包を、生姜と酢でいただく。",
+                        "ach-name-16": "揚げ臭豆腐に挑戦する 🧆",
+                        "ach-desc-16": "外はカリッと、中はジューシーな臭豆腐。甘酸っぱい台湾風キムチを挟んで食べるのが正解。",
+                        "ach-name-17": "台湾式居酒屋「熱炒（ラーチャオ）」体験 🍻",
+                        "ach-desc-17": "低いテーブルと椅子を囲み、宮保鶏丁などの炒め料理をつまみにビールを酌み交わす。",
+                        "ach-name-18": "台湾風朝食店へ行く 🥞",
+                        "ach-desc-18": "朝から焼きたてのダンピン（卵クレープ）や油条、焼餅を豆乳やミルクティーと共に。",
+                        "ach-name-19": "万巒豚足（萬巒豬腳）を食べる 🍖",
+                        "ach-desc-19": "屏東県万巒名物のプルプル豚足を特製のニンニク醤油ダレで味わう。",
+                        "ach-name-20": "台南名物・新鮮牛肉湯 🥣",
+                        "ach-desc-20": "朝一番に台南で、捌きたての温体牛肉に熱いスープを注いだ新鮮で甘みのある牛肉スープを飲む。",
+                        "ach-name-21": "台北龍山寺を参拝 ⛩️",
+                        "ach-desc-21": "万華の龍山寺を訪れ、線香の煙が立ち込める歴史ある寺院の美しい彫刻を鑑賞。",
+                        "ach-name-22": "大甲鎮瀾宮を訪ねる ⛩️",
+                        "ach-desc-22": "台中大甲のマ祖（媽祖）信仰の総本山を訪れ、台湾の熱狂的な民間信仰の熱気を感じる。",
+                        "ach-name-23": "九份の坂道と古い街並みを散策 🏮",
+                        "ach-desc-23": "石畳の階段を上り、赤い提灯が灯るレトロな街並みと美しい海景を楽しむ。",
+                        "ach-name-24": "国立故宮博物院を見学 🏛️",
+                        "ach-desc-24": "台北の故宮で、「翠玉白菜」や「肉形石」など世界的に有名な中国の至宝の数々を見学。",
+                        "ach-name-25": "中正紀念堂を見学 🏛️",
+                        "ach-desc-25": "巨大な白青の建築とアーチを見上げ、衛兵交代式を間近で見学する。",
+                        "ach-name-26": "安平古堡を巡る 🏰",
+                        "ach-desc-26": "台南でオランダ統治時代のゼーランディア城跡を訪れ、台湾の歴史の始まりに触れる。",
+                        "ach-name-27": "記念スタンプを集める 📖",
+                        "ach-desc-27": "各地の駅やビジターセンターで用意されている旅のスタンプをノートに集めて歩く。",
+                        "ach-name-28": "彰化鹿港老街を歩く 🏘️",
+                        "ach-desc-28": "赤レンガの狭い路地を抜け、モアルー巷（摸乳巷）などを巡ってノスタルジーに浸る。",
+                        "ach-name-29": "台南孔子廟を訪ねる 🛕",
+                        "ach-desc-29": "「全台首学」と称される台湾最古の孔子廟で、赤い壁と大樹に囲まれた儒教の歴史を感じる。",
+                        "ach-name-30": "美濃で客家文化と紙傘体験 🌂",
+                        "ach-desc-30": "高雄の美濃で客家（ハッカ）のお茶「擂茶」を体験し、手作りの油紙傘のアートを鑑賞。",
+                        "ach-name-31": "台北101展望台へ登る 🏢",
+                        "ach-desc-31": "超高速エレベーターで展望台へ昇り、台北盆地の大パノラマを見渡す。",
+                        "ach-name-32": "南投日月潭を訪れる 🏞️",
+                        "ach-desc-32": "世界一美しいとも言われるサイクリングロードを自転車で走り、湖と山々の絶景を満喫する。",
+                        "ach-name-33": "阿里山巨木群の中を散策 🌲",
+                        "ach-desc-33": "スギ林の遊歩道を歩き、そびえ立つ樹齢千年の巨大なご神木群に出会う。",
+                        "ach-name-34": "太魯閣（タロコ）燕子口を巡る 🪨",
+                        "ach-desc-34": "タロコ国家公園の大理石の絶壁と、川の流れが削り出した迫力の大峡谷を体感する。",
+                        "ach-name-35": "野柳地質公園でクイーンズヘッドを見る 🗿",
+                        "ach-desc-35": "北海岸の風化や海食によって作られた奇岩「女王頭（クイーンズヘッド）」を見学。",
+                        "ach-name-36": "宜蘭太平山を訪ねる 🌲",
+                        "ach-desc-36": "ヒノキの香り漂う原生林遊歩道を歩き、幻想的な翠峰湖の朝霧を眺める。",
+                        "ach-name-37": "鵝鑾鼻（がらんび）灯台に立つ 🌅",
+                        "ach-desc-37": "台湾最南端 of 岬に立つ真っ白な灯台を訪れ、美しいバス海峡を望む。",
+                        "ach-name-38": "陽明山小油坑で火山を体感 🌋",
+                        "ach-desc-38": "噴気孔のすぐ近くに立ち、シューシューと音を立てて噴き出す硫黄の煙を見る。",
+                        "ach-name-39": "台東三仙台の八仙橋を渡る 🌉",
+                        "ach-desc-39": "特徴的な8つのアーチがかかる大橋を渡り、波打つ太平洋の絶景を楽しむ。",
+                        "ach-name-40": "阿里山の日出と雲海を仰ぐ 🌅",
+                        "ach-desc-40": "朝一番に祝山の展望台に立ち、昇る朝日の光が波打つ雲海を照らす奇跡の瞬間を見る。",
+                        "ach-name-41": "絶景民宿に宿泊 🏡",
+                        "ach-desc-41": "九份や清境農場など、美しい山の斜面に立つ絵画のようなロマンチックな民宿に泊まる。",
+                        "ach-name-42": "温泉旅館に泊まる ♨️",
+                        "ach-desc-42": "北投、礁溪、谷関などの温泉リゾートホテルに宿泊し、客室プライベート温泉を楽しむ。",
+                        "ach-name-43": "キャンプやグランピング体験 ⛺",
+                        "ach-desc-43": "豊かな大自然の中でテントを張る本格キャンプや、おしゃれな手ぶらグランピングを楽しむ。",
+                        "ach-name-44": "5つ星ホテルに宿泊 🏨",
+                        "ach-desc-44": "台湾を代表する高級ホテルに滞在し、極上のホスピタリティとレジャー施設を満喫する。",
+                        "ach-name-45": "ホステルやゲストハウスに宿泊 🎒",
+                        "ach-desc-45": "旅のコストを抑えてドミトリーに滞在し、世界中の旅人との交流を楽しむ。",
+                        "ach-name-46": "台湾特有のラブホテル（モーテル）体験 🚗",
+                        "ach-desc-46": "広大な客室に豪華な浴槽、KTVまで完備された台湾ならではの高級モーテル文化を体験。",
+                        "ach-name-47": "古民家リノベーション民宿に宿泊 🏚️",
+                        "ach-desc-47": "台南や台北大稻埕で、日本家屋や台湾の古い建物を改装したノスタルジックな宿に泊まる。",
+                        "ach-name-48": "コテージやログハウスに宿泊 🪵",
+                        "ach-desc-48": "渓頭や太平山などの森林エリアで木製コテージに泊まり、小鳥のさえずりで目覚める朝。",
+                        "ach-name-49": "オーシャンフロントの宿に泊まる 🌊",
+                        "ach-desc-49": "墾丁や花蓮の海沿いの部屋に泊まり、窓の外に広がる太平洋の波音を聞きながら眠る。",
+                        "ach-name-50": "ターミナル駅周辺に夜泊する ✈️",
+                        "ach-desc-50": "早朝便や深夜便の都合で、桃園国際空港や台北駅周辺の宿に泊まり深夜の旅情を感じる。",
+                        "ach-name-51": "深夜の誠品書店を散策 📚",
+                        "ach-desc-51": "台湾を代表する誠品書店に夜遅くに入り、独特のおしゃれなカルチャー空間に浸る。",
+                        "ach-name-52": "スーパー「全聯（PX Mart）」で買い出し 🛒",
+                        "ach-desc-52": "最も親しまれているローカルスーパーで、お土産用のスナック菓子や台湾ビールを購入。",
+                        "ach-name-53": "定番お土産・パイナップルケーキ（鳳梨酥） 🍍",
+                        "ach-desc-53": "「サニーヒルズ」や「佳徳」などの有名ブランドのパイナップルケーキをお土産に買う。",
+                        "ach-name-54": "台湾高山茶を購入 🍵",
+                        "ach-desc-54": "阿里山ウーロン茶や凍頂ウーロン茶をセレクトし、香り高い台湾茶文化を自宅でも楽しむ。",
+                        "ach-name-55": "迪化街南北貨探し 🛍️",
+                        "ach-desc-55": "台北大稻埕のレトロ街・迪化街を歩き、マンゴーのドライフルーツや漢方、雑貨を買う。",
+                        "ach-name-56": "アウトレットモールでショッピング 🛍️",
+                        "ach-desc-56": "三井アウトレットパーク林口や桃園の華泰名品城を訪れ、お得なブランドショッピングを。",
+                        "ach-name-57": "コンビニの茶葉蛋（お茶たまご） 🥚",
+                        "ach-desc-57": "台湾全土のコンビニに入り、独特の香りが広がるアツアツの茶葉煮たまごを買い食いする。",
+                        "ach-name-58": "宝くじ（彩券・スクラッチ）を買う 🎫",
+                        "ach-desc-58": "街頭の彩券行に立ち寄り、スクラッチくじを買って運試しの一攫千金ドリーム。",
+                        "ach-name-59": "老街のレトロ店舗巡り 🏺",
+                        "ach-desc-59": "各地の古い街並みで、手作り石鹸や懐かしのおもちゃ、地元の特産品を販売する店を覗く。",
+                        "ach-name-60": "台湾のクリエイティブ・文創グッズ 🎨",
+                        "ach-desc-60": "華山や松山文創園区で、台湾の若手デザイナーが作るおしゃれなデザイングッズを購入。",
+                        "ach-name-61": "象山から台北101の夜景を撮影 🌃",
+                        "ach-desc-61": "象山のハイキングコースを登り、六巨石の上からきらめく台北101と夜景をカメラに収める。",
+                        "ach-name-62": "高雄流行音楽中心と駁二の夜景 ⚓",
+                        "ach-desc-62": "高雄港エリアで、近未来的な音楽センターのイルミネーションとアート特区の夜景を撮る。",
+                        "ach-name-63": "日月潭の朝霧と夕暮れの美 🌅",
+                        "ach-desc-63": "朝霧桟橋や水社桟橋から、朝もやに包まれた湖面やロマンチックな夕焼けを切り取る。",
+                        "ach-name-64": "阿里山鉄道と桜のコラボ 🌸",
+                        "ach-desc-64": "春に沼平駅のカーブに待機し、満開の桜の下を走り抜けるレトロな赤い列車を撮影。",
+                        "ach-name-65": "合歓山の満天の星空と天の川 🌌",
+                        "ach-desc-65": "武嶺や石門山などの「星空保護区」で、夜空に美しく輝く天の川の撮影に挑む。",
+                        "ach-name-66": "九份阿妹茶樓と赤い提灯 🏮",
+                        "ach-desc-66": "夕暮れ時に阿妹茶楼の対面に立ち、千と千尋の神隠しを彷彿とさせる光る提灯を撮影。",
+                        "ach-name-67": "老梅緑石槽の春季限定絶景 🌊",
+                        "ach-desc-67": "春（3月〜5月）に石門を訪れ、波が打ち寄せる緑の海藻に覆われた溝状の岩肌を撮影。",
+                        "ach-name-68": "奇美博物館のギリシャ風外観 🏛️",
+                        "ach-desc-68": "台南で、まるでヨーロッパの宮殿のような真っ白な奇美博物館とアポロ噴水広場を撮影。",
+                        "ach-name-69": "平渓線ローカル列車と古い街並み 🚂",
+                        "ach-desc-69": "十分老街などの線路脇から、建物のギリギリをかすめて走るカラフルな列車をスナップ。",
+                        "ach-name-70": "赤崁樓の中華風楼閣 🏛️",
+                        "ach-desc-70": "台南で、赤崁楼と海神廟の二重の屋根と、立ち並ぶ歴史的な石碑の姿をレンズに収める。",
+                        "ach-name-71": "台北101年越しカウントダウン花火 🎆",
+                        "ach-desc-71": "年末年始のカウントダウンで、台北101から一斉に放たれる大迫力の花火と紙吹雪を体感。",
+                        "ach-name-72": "台東国際熱気球フェスティバル 🎈",
+                        "ach-desc-72": "鹿野高台の大草原で、青空へとゆっくり舞い上がるカラフルなキャラクター熱気球を見上げる。",
+                        "ach-name-73": "新北クリスマスランド（新北歡樂耶誕城） 🎄",
+                        "ach-desc-73": "板橋駅前で冬に開催される、台湾最大級のきらびやかで幻想的なプロジェクションマッピング。",
+                        "ach-name-74": "塩水蜂炮（ロケット花火祭り） 🎆",
+                        "ach-desc-74": "ヘルメットや厚着で完全防備し、台南塩水で神輿を取り囲むロケット花火の雨に突入するスリル。",
+                        "ach-name-75": "平渓十分で天灯上げ体験 🏮",
+                        "ach-desc-75": "平渓や十分の線路の上で、紙の天灯（ランタン）に願い事を書いて夜空へふわりと放つ。",
+                        "ach-name-76": "マ祖（媽祖）巡礼・渡御体験 ⛩️",
+                        "ach-desc-76": "大甲媽祖や白沙屯媽祖の徒歩巡礼に加わり、沿線の地元住民が配る無料の給水を体験する。",
+                        "ach-name-77": "東港迎王平安祭典（王船祭り） ⛵",
+                        "ach-desc-77": "3年に一度、屏東県東港で開催される、神聖な巨大木造船を燃やす「焼王船」の儀式を見学。",
+                        "ach-name-78": "原住民族の豊年祭（イルシン） 🥁",
+                        "ach-desc-78": "各地の原住民集落で行われる収穫感謝のお祭りに参加し、伝統的な歌や踊りの輪に入る。",
+                        "ach-name-79": "台湾ランタンフェスティバル 🏮",
+                        "ach-desc-79": "元宵節の時期に全国を巡回して開催される大規模なランタンフェスタで巨大ランタンを鑑賞。",
+                        "ach-name-80": "台東の炸寒単（爆竹浴び祭り） 🔥",
+                        "ach-desc-80": "台東の元宵節イベントで、上半身裸の寒単爺役が四方から爆竹を浴びる過激な祈願儀式を見学。",
+                        "ach-name-81": "澎湖（ポンフー）諸島を訪れる 🏝️",
+                        "ach-desc-81": "飛行機や船で澎湖へ。観音亭のレインボーブリッジを歩き、名物のサボテンアイスを食べる。",
+                        "ach-name-82": "金門（キンモン）諸島を訪れる 🪨",
+                        "ach-desc-82": "国共内戦時の軍事遺構や美しい閩南建築の町並みを巡り、名物の高粱酒や貢糖を味わう。",
+                        "ach-name-83": "馬祖（マーツ）諸島を訪れる 🌊",
+                        "ach-desc-83": "馬祖を訪れ、地中海のような芹壁石造集落を散策し、夜には幻想的な「青い涙」を鑑賞する。",
+                        "ach-name-84": "小琉球で海亀に出会う 🐢",
+                        "ach-desc-84": "フェリーで小琉球へ。シュノーケリングで間近を泳ぐ野生のアオウミガメを観察する。",
+                        "ach-name-85": "緑島で海底温泉 🏝️",
+                        "ach-desc-85": "緑島でシュノーケリングを楽しんだ後、世界でも珍しい波打ち際の「朝日温泉」に入る。",
+                        "ach-name-86": "神秘の島・蘭嶼（らんしょ） 🛶",
+                        "ach-desc-86": "タオ族の文化に触れ、美しい伝統の「拼板舟（木造船）」を眺めて原始的なコバルトブルーの海を満階。",
+                        "ach-name-87": "地下軍事トンネル（坑道）探検 🪖",
+                        "ach-desc-87": "金門の「翟山坑道」や馬祖の「八八坑道」に入り、花崗岩をくり抜いた軍事遺跡の迫力を体験。",
+                        "ach-name-88": "離島をレンタルバイクで一周 🛵",
+                        "ach-desc-88": "緑島、小琉球、澎湖などの島々で風を切り、信号のない絶景ロードをバイクでツーリング。",
+                        "ach-name-89": "離島ならではのグルメを堪能 🍧",
+                        "ach-desc-89": "馬祖の老酒素麺、金門の炒めインスタントラーメン、澎湖のイカ素麺などご当地の味を満喫。",
+                        "ach-name-90": "離島の絶景サンセット 🌅",
+                        "ach-desc-90": "緑島の帆船鼻や、澎湖の西嶼、潮が引くと道が現れる金門の建功嶼で水平線に沈む夕日を見る。",
+                        "ach-name-91": "自転車で台湾一周（環島） 🚴‍♂️",
+                        "ach-desc-91": "体力の限界に挑みながら、約900kmのロードを走り抜けて熱い「環島（ホァンダオ）」を果たす。",
+                        "ach-name-92": "自転車で武嶺登頂に挑戦 🚴‍♂️",
+                        "ach-desc-92": "標高3275mの台湾公路最高地点・武嶺へ、強烈な坂と寒さに耐えてロードバイクで登頂する。",
+                        "ach-name-93": "日月潭横断泳に挑戦 🏊‍♂️",
+                        "ach-desc-93": "年に一度開催される約3000mのオープンウォータースイム大会に参加し、広大な湖を泳ぎ切る。",
+                        "ach-name-94": "台湾百岳の一座に登頂 🥾",
+                        "ach-desc-94": "台湾を代表する100の高山「百岳」のいずれかを踏破し、眼下に広がる広大な雲海を眺める。",
+                        "ach-name-95": "東北アジア最高峰・玉山登頂 🏔️",
+                        "ach-desc-95": "台湾および東北アジアの頂点である玉山主峰（標高3952m）への登山に挑戦し、登頂を果たす。",
+                        "ach-name-96": "雪山主峰登頂とカール観賞 🏔️",
+                        "ach-desc-96": "台湾第二の高峰・雪山主峰に登り、太古の氷河活動が残した壮大なサークルカールを目撃する。",
+                        "ach-name-97": "徒歩で台湾一周を達成 🥾",
+                        "ach-desc-97": "強い精神力と肉体だけで、何日もかけて台湾本島一周の道のりすべてを歩き切る。",
+                        "ach-name-98": "台湾の東西南北・四極点灯台制覇 📍",
+                        "ach-desc-98": "東（三貂角）、西（国聖港）、南（鵝鑾鼻）、北（富貴角）の端に立つ4つの灯台をすべて制覇する。",
+                        "ach-name-99": "24時間以内「一日双塔」に挑戦 🚴‍♂️",
+                        "ach-desc-99": "24時間以内に最北端 of 富貴角灯台から最南端 of 鵝鑾鼻灯台まで自転車で一気に駆け抜ける（約520km）。",
+                        "ach-name-100": "全22県市の足跡を完全解鎖 🗺️",
+                        "ach-desc-100": "台湾全土22のすべての県・市を訪問し、足跡マップにスタンプを完璧に揃える！"
+            }
+};
+
+        // --- 1. Emojis and Config Databases ---
+        const avatars = ["🥋", "👘", "🍣", "🏯", "🦊", "🐱", "🎒", "🏔️", "🚄", "👺", "🐙", "🌸", "🍵", "🦌", "🍜", "🚴", "🍍", "🛵"];
+
+        const badgeData = [
+            { id: "railfan", name: "鐵道與交通達人", emoji: "🚄", desc: "解鎖 6 項交通/鐵道相關成就", threshold: 6 },
+            { id: "foodie", name: "夜市饕客", emoji: "🍢", desc: "解鎖 8 項美食相關成就", threshold: 8 },
+            { id: "culture", name: "台灣文化巡禮者", emoji: "🏮", desc: "解鎖 6 項歷史/文化相關成就", threshold: 6 },
+            { id: "nature", name: "百岳與山林玩家", emoji: "🏔️", desc: "解鎖 6 項自然景點與百岳相關成就", threshold: 6 },
+            { id: "island", name: "跳島旅行家", emoji: "🚢", desc: "解鎖 4 項離島相關成就", threshold: 4 },
+            { id: "photographer", name: "極景攝影師", emoji: "📷", desc: "解鎖 5 項攝影相關成就", threshold: 5 },
+            { id: "festival", name: "民俗祭典通", emoji: "🥁", desc: "解鎖 4 項祭典與節慶相關成就", threshold: 4 },
+            { id: "challenger", name: "硬派鐵人", emoji: "🚴‍♂️", desc: "解鎖 4 項挑戰/運動相關成就", threshold: 4 },
+            { id: "lodger", name: "特色旅宿體驗家", emoji: "🏡", desc: "解鎖 4 項住宿相關成就", threshold: 4 },
+            { id: "shrine", name: "虔誠信仰信徒", emoji: "⛩️", desc: "解鎖 4 項宮廟參拜/宗教相關成就", threshold: 4 }
+        ];
+
+        const prefecturesData = [
+            { id: "matsu", name: "連江", region: "離島", row: 1, col: 1, color: "#1679ab" },
+            { id: "keelung", name: "基隆", region: "北部", row: 1, col: 5, color: "#2b5c8f" },
+            { id: "taipei", name: "台北", region: "北部", row: 2, col: 4, color: "#2b5c8f" },
+            { id: "newtaipei", name: "新北", region: "北部", row: 2, col: 5, color: "#2b5c8f" },
+            { id: "taoyuan", name: "桃園", region: "北部", row: 3, col: 3, color: "#2b5c8f" },
+            { id: "yilan", name: "宜蘭", region: "北部", row: 3, col: 5, color: "#2b5c8f" },
+            { id: "kinmen", name: "金門", region: "離島", row: 4, col: 1, color: "#1679ab" },
+            { id: "hsinchucity", name: "新竹市", region: "北部", row: 4, col: 2, color: "#2b5c8f" },
+            { id: "hsinchucounty", name: "新竹縣", region: "北部", row: 4, col: 3, color: "#2b5c8f" },
+            { id: "miaoli", name: "苗栗", region: "中部", row: 5, col: 3, color: "#2e7d32" },
+            { id: "hualien", name: "花蓮", region: "東部", row: 5, col: 5, color: "#7851a9" },
+            { id: "taichung", name: "台中", region: "中部", row: 6, col: 3, color: "#2e7d32" },
+            { id: "penghu", name: "澎湖", region: "離島", row: 7, col: 1, color: "#1679ab" },
+            { id: "changhua", name: "彰化", region: "中部", row: 7, col: 2, color: "#2e7d32" },
+            { id: "nantou", name: "南投", region: "中部", row: 7, col: 4, color: "#2e7d32" },
+            { id: "yunlin", name: "雲林", region: "中部", row: 8, col: 2, color: "#2e7d32" },
+            { id: "chiayicity", name: "嘉義市", region: "南部", row: 8, col: 3, color: "#b86214" },
+            { id: "chiayicounty", name: "嘉義縣", region: "南部", row: 9, col: 2, color: "#b86214" },
+            { id: "taitung", name: "台東", region: "東部", row: 9, col: 5, color: "#7851a9" },
+            { id: "tainan", name: "台南", region: "南部", row: 10, col: 3, color: "#b86214" },
+            { id: "kaohsiung", name: "高雄", region: "南部", row: 11, col: 3, color: "#b86214" },
+            { id: "pingtung", name: "屏東", region: "南部", row: 12, col: 3, color: "#b86214" }
+        ];
+
+        // --- 2. Complete 100 Achievements Data ---
+        const achievementsData = [
+            // Transit 交通 (1-10)
+            { id: 1, name: "搭乘台灣高鐵 🚄", desc: "體驗南北高速鐵路，完成一日生活圈的穿梭。", diff: 1, rarity: "Common", cat: "交通", badgeId: "railfan" },
+            { id: 2, name: "搭乘台北捷運 🚇", desc: "刷悠遊卡進站，體驗雙北四通八達的地下交通網絡。", diff: 1, rarity: "Common", cat: "交通", badgeId: "railfan" },
+            { id: 3, name: "搭乘高雄捷運 🚇", desc: "搭捷運造訪美麗島站，欣賞知名的光之穹頂藝術。", diff: 1, rarity: "Common", cat: "交通", badgeId: "railfan" },
+            { id: 4, name: "搭乘台中捷運 🚇", desc: "在台中搭乘綠線捷運，感受高架軌道車窗的綠意視野。", diff: 1, rarity: "Common", cat: "交通", badgeId: "railfan" },
+            { id: 5, name: "搭乘淡海或安坑輕軌 🚃", desc: "搭乘特色輕軌，在北台灣沿線享受慢速路面軌道風景。", diff: 2, rarity: "Common", cat: "交通", badgeId: "railfan" },
+            { id: 6, name: "YouBike 跨縣市/漫遊 🚲", desc: "租用 YouBike 單車完成一趟跨縣市旅行或深入小鎮漫遊。", diff: 2, rarity: "Common", cat: "交通" },
+            { id: 7, name: "租機車出遊跑山 🛵", desc: "在火車站旁租用機車，迎風探索山海美景，體驗台式移動方式。", diff: 2, rarity: "Common", cat: "交通" },
+            { id: 8, name: "搭乘阿里山林業小火車 🚂", desc: "搭乘百年登山窄軌鐵路，穿梭森林雲霧抵達祝山或神木車站。", diff: 3, rarity: "Rare", cat: "交通", badgeId: "railfan" },
+            { id: 9, name: "搭乘渡輪去八里或旗津 🚢", desc: "坐上交通渡輪橫越淡水河或高雄港，吹海風看水岸夕陽。", diff: 2, rarity: "Common", cat: "交通" },
+            { id: 10, name: "搭火車環島一圈 🚃", desc: "利用台鐵環島幹線，在火車笛聲中完成環繞台灣一圈的壯舉。", diff: 4, rarity: "Epic", cat: "交通", badgeId: "railfan" },
+
+            // Gourmet 美食 (11-20)
+            { id: 11, name: "品嚐台式牛肉麵 🍜", desc: "品嚐一碗精心燉煮、配上酸菜與濃郁紅燒或清燉湯頭的牛肉麵。", diff: 1, rarity: "Common", cat: "美食", badgeId: "foodie" },
+            { id: 12, name: "大口吃滷肉飯/肉燥飯 🍛", desc: "享用肥而不膩、帶有膠質微甜醬汁的台式國民美食靈魂飯食。", diff: 1, rarity: "Common", cat: "美食", badgeId: "foodie" },
+            { id: 13, name: "吃香煎蚵仔煎 🍳", desc: "在夜市品嚐太白粉水、雞蛋、蚵仔與茼蒿煎成的彈牙小吃。", diff: 1, rarity: "Common", cat: "美食", badgeId: "foodie" },
+            { id: 14, name: "雞排 + 珍珠奶茶組合 🧋", desc: "大口咬下酥脆比臉大雞排，配上一杯手搖半糖少冰珍奶，熱量爆棚。", diff: 1, rarity: "Common", cat: "美食", badgeId: "foodie" },
+            { id: 15, name: "享用皮薄小籠包 🥟", desc: "咬下爆漿多汁的經典小籠包，沾著醋與嫩薑絲品嚐細緻麵皮。", diff: 1, rarity: "Common", cat: "美食", badgeId: "foodie" },
+            { id: 16, name: "挑戰香炸臭豆腐 🧆", desc: "品嚐外酥內嫩的油炸臭豆腐，一定要塞滿酸甜爽脆的台式泡菜。", diff: 2, rarity: "Common", cat: "美食", badgeId: "foodie" },
+            { id: 17, name: "體驗台式熱炒 🍻", desc: "圍坐在矮桌圓凳，點上幾盤宮保雞丁、鳳梨蝦球，配啤酒暢聊。", diff: 2, rarity: "Common", cat: "美食", badgeId: "foodie" },
+            { id: 18, name: "享用台式早餐店 🥞", desc: "早上點盤現煎蛋餅、油條、燒餅，配上一杯冰豆漿或大冰奶。", diff: 1, rarity: "Common", cat: "美食", badgeId: "foodie" },
+            { id: 19, name: "吃萬巒豬腳 🍖", desc: "在屏東萬巒品嚐外皮Q彈、滷汁入味的豬腳，沾特製蒜蓉醬。", diff: 2, rarity: "Common", cat: "美食", badgeId: "foodie" },
+            { id: 20, name: "喝台南新鮮牛肉湯 🥣", desc: "清晨在台南喝一碗將溫體牛切片、直接淋上滾燙高湯的鮮甜牛肉湯。", diff: 3, rarity: "Rare", cat: "美食", badgeId: "foodie" },
+
+            // Culture 文化 (21-30)
+            { id: 21, name: "參拜台北龍山寺 ⛩️", desc: "前往萬華龍山寺拜拜，領略香火鼎盛的古蹟宮廟與雕刻之美。", diff: 2, rarity: "Common", cat: "文化", badgeId: "shrine" },
+            { id: 22, name: "造訪大甲鎮瀾宮 ⛩️", desc: "朝聖台中大甲媽祖信仰的核心大本營，感受台灣民俗信仰力量。", diff: 2, rarity: "Common", cat: "文化", badgeId: "shrine" },
+            { id: 23, name: "漫步九份山城老街 🏮", desc: "沿著豎崎路石階拾級而上，看高掛紅燈籠與面海山城風景。", diff: 2, rarity: "Common", cat: "文化", badgeId: "culture" },
+            { id: 24, name: "參觀故宮博物院 🏛️", desc: "在台北故宮一睹翠玉白菜、肉形石等享譽全球的歷史珍寶珍藏。", diff: 2, rarity: "Common", cat: "文化", badgeId: "culture" },
+            { id: 25, name: "參觀中正紀念堂 🏛️", desc: "看高聳的藍白徽建築、大中至正牌樓，並觀看帥氣的三軍儀隊交接儀式。", diff: 2, rarity: "Common", cat: "文化", badgeId: "culture" },
+            { id: 26, name: "走訪安平古堡 🏰", desc: "在台南走訪荷蘭時期的熱蘭遮城城牆遺址，體會台南建城歷史痕跡。", diff: 2, rarity: "Common", cat: "文化", badgeId: "culture" },
+            { id: 27, name: "收集車站/景點紀念章 📖", desc: "準備小筆記本，在各火車站、國家公園遊客中心蓋印打卡章留念。", diff: 2, rarity: "Common", cat: "文化" },
+            { id: 28, name: "走訪彰化鹿港老街 🏘️", desc: "穿梭紅磚窄巷，走訪摸乳巷、半邊井，感受古樸歷史風貌。", diff: 2, rarity: "Common", cat: "文化", badgeId: "culture" },
+            { id: 29, name: "走訪全台首學孔廟 🛕", desc: "拜訪台南孔廟，看「全台首學」匾額紅牆與參天古樹，體會儒家氛圍。", diff: 2, rarity: "Common", cat: "文化", badgeId: "shrine" },
+            { id: 30, name: "美濃客家文化與紙傘 🌂", desc: "在高雄美濃體驗客家擂茶、欣賞手工精緻繪製的桐油紙傘。", diff: 3, rarity: "Rare", cat: "文化", badgeId: "culture" },
+
+            // Nature 自然 (31-40)
+            { id: 31, name: "登上台北101觀景台 🏢", desc: "搭乘超高速電梯登上觀景台，鳥瞰整座大台北盆地的璀璨景色。", diff: 2, rarity: "Common", cat: "自然", badgeId: "shrine" },
+            { id: 32, name: "造訪南投日月潭 🏞️", desc: "漫步湖畔、搭乘遊艇或騎單車在被評為世界最美自行車道上欣賞湖光山色。", diff: 2, rarity: "Common", cat: "自然", badgeId: "nature" },
+            { id: 33, name: "漫步阿里山巨木群 🌲", desc: "走在杉木林棧道，呼吸香氣，與高聳參天的千年巨木神木群相遇。", diff: 2, rarity: "Common", cat: "自然", badgeId: "nature" },
+            { id: 34, name: "走訪太魯閣燕子口 🪨", desc: "親臨太魯閣國家公園，欣賞大理石峽谷斷崖與鬼斧神工溪流切割地形。", diff: 2, rarity: "Common", cat: "自然", badgeId: "nature" },
+            { id: 35, name: "野柳地質公園女王頭 🗿", desc: "在北海岸尋找地質奇觀女王頭與燭台石，感受千萬年海蝕風化痕跡。", diff: 2, rarity: "Common", cat: "自然", badgeId: "nature" },
+            { id: 36, name: "造訪宜蘭太平山 🌲", desc: "行走於充滿檜木芬多精的太平山林道，欣賞翠峰湖夢幻的晨霧。", diff: 3, rarity: "Rare", cat: "自然", badgeId: "nature" },
+            { id: 37, name: "踏上鵝鑾鼻燈塔 🌅", desc: "造訪墾丁國家公園的極南點，與潔白的鵝鑾鼻燈塔合照，眺望巴士海峽。", diff: 2, rarity: "Common", cat: "自然", badgeId: "nature" },
+            { id: 38, name: "陽明山小油坑火山景致 🌋", desc: "站在小油坑噴氣孔旁，聽嘶嘶噴氣聲，看硫磺熱霧漫天飛舞。", diff: 2, rarity: "Common", cat: "自然", badgeId: "nature" },
+            { id: 39, name: "走過台東三仙台 🌉", desc: "踏上經典的八拱跨海步道橋，步行登臨離岸火山岩島嶼。", diff: 3, rarity: "Rare", cat: "自然", badgeId: "nature" },
+            { id: 40, name: "看阿里山日出雲海 🌅", desc: "清晨頂著寒意站在祝山觀日平台，見金光躍出山頭、渲染翻湧雲海。", diff: 3, rarity: "Rare", cat: "自然", badgeId: "nature" },
+
+            // Lodging 住宿 (41-50)
+            { id: 41, name: "住特色景觀民宿 🏡", desc: "入住九份或清境農場等地的美麗山景民宿，享受放鬆生活。", diff: 2, rarity: "Common", cat: "住宿", badgeId: "lodger" },
+            { id: 42, name: "泡熱泉住溫泉飯店 ♨️", desc: "入住北投、礁溪或谷關的溫泉旅館，在房內享受舒壓暖湯。", diff: 2, rarity: "Common", cat: "住宿", badgeId: "lodger" },
+            { id: 43, name: "體驗露營/豪華露營 ⛺", desc: "在大自然中搭帳篷野營，或體驗設施齊全的懶人豪華 Glamping。", diff: 2, rarity: "Common", cat: "住宿", badgeId: "lodger" },
+            { id: 44, name: "入住五星級飯店 🏨", desc: "預訂一晚台灣指標性高檔五星飯店，享受頂級休閒設施與餐飲服務。", diff: 3, rarity: "Rare", cat: "住宿", badgeId: "lodger" },
+            { id: 45, name: "住背包客棧青年旅館 🎒", desc: "入住青年旅舍上下舖床位，與來自全球的背包客交流旅行心得。", diff: 2, rarity: "Common", cat: "住宿", badgeId: "lodger" },
+            { id: 46, name: "體驗台灣特色汽車旅館 🚗", desc: "體驗台灣獨特的頂級 Motel，享受超大空間、KTV 與極盡豪華按摩浴缸。", diff: 2, rarity: "Common", cat: "住宿", badgeId: "lodger" },
+            { id: 47, name: "入住老屋改建民宿 🏚️", desc: "在台南或大稻埕入住閩式或日式老宅民居，體驗懷舊歷史韻味。", diff: 3, rarity: "Rare", cat: "住宿", badgeId: "lodger" },
+            { id: 48, name: "住森林小木屋 🪵", desc: "入住溪頭或太平山等森林遊樂區木屋，清晨在小鳥啼叫中醒來。", diff: 3, rarity: "Rare", cat: "住宿", badgeId: "lodger" },
+            { id: 49, name: "海景第一排住宿 🌊", desc: "入住墾丁或花蓮七星潭的臨海民宿，在落地窗前聽著浪濤聲入眠。", diff: 3, rarity: "Rare", cat: "住宿", badgeId: "lodger" },
+            { id: 50, name: "交通樞紐轉運夜宿 ✈️", desc: "因行程需要在桃園機場或台北車站附近過夜，體驗深夜行路步伐。", diff: 2, rarity: "Common", cat: "住宿" },
+
+            // Shopping 購物 (51-60)
+            { id: 51, name: "深夜逛誠品書店 📚", desc: "走進台灣指標性的誠品書店，沉浸於濃郁的文藝書香氛圍。", diff: 2, rarity: "Common", cat: "購物" },
+            { id: 52, name: "全聯福利中心採買 🛒", desc: "在最接地氣的超市全聯購物，採買零食、泡麵與台灣水果飲料。", diff: 1, rarity: "Common", cat: "購物" },
+            { id: 53, name: "買鳳梨酥當伴手禮 🍍", desc: "購買微熱山丘、佳德等知名伴手禮鳳梨酥，送禮自用兩相宜。", diff: 1, rarity: "Common", cat: "購物" },
+            { id: 54, name: "買台灣高山茶葉 🍵", desc: "選購一包阿里山烏龍茶或凍頂烏龍，體會香醇台茶文化。", diff: 2, rarity: "Common", cat: "購物" },
+            { id: 55, name: "迪化街南北貨尋寶 🛍️", desc: "在台北大稻埕迪化街散步，採買中藥材、芒果乾與古樸乾貨。", diff: 2, rarity: "Common", cat: "購物" },
+            { id: 56, name: "逛大型 Outlet 購物 🛍️", desc: "造訪林口三井、桃園華泰名品城等大型暢貨中心享受打折購物樂趣。", diff: 2, rarity: "Common", cat: "購物" },
+            { id: 57, name: "超商吃茶葉蛋關東煮 🥚", desc: "在台灣無所不在的四大超商用茶葉夾一顆茶香入味的茶葉蛋果腹。", diff: 1, rarity: "Common", cat: "購物" },
+            { id: 58, name: "購買台灣彩券刮刮樂 🎫", desc: "路過街頭彩券行隨手買一張大樂透或刮刮樂，做一場發財夢。", diff: 1, rarity: "Common", cat: "購物" },
+            { id: 59, name: "地方老街特色店舖 🏺", desc: "在老街古厝商店購買手工肥皂、懷舊玩具或在地農產好物。", diff: 2, rarity: "Common", cat: "購物" },
+            { id: 60, name: "支持原創文創商品 🎨", desc: "在松菸、華山文創園區購買台灣在地設計師製作的手創文青藝品。", diff: 2, rarity: "Common", cat: "購物" },
+
+            // Photo 攝影 (61-70)
+            { id: 61, name: "象山拍台北101夜景 🌃", desc: "爬上象山六巨石，按快門捕捉台北101與信義區璀璨萬家燈火。", diff: 2, rarity: "Common", cat: "攝影", badgeId: "photographer" },
+            { id: 62, name: "高流/駁二港灣夜景 ⚓", desc: "在高雄港畔拍下流行音樂中心科幻前衛外觀與駁二藝術特區燈火倒影。", diff: 2, rarity: "Common", cat: "攝影", badgeId: "photographer" },
+            { id: 63, name: "日月潭晨霧/夕陽 🌅", desc: "在朝霧或水社碼頭拍下日月潭煙雨濛濛或日落滿天紅霞的詩意畫面。", diff: 3, rarity: "Rare", cat: "攝影", badgeId: "photographer" },
+            { id: 64, name: "阿里山小火車與櫻花 🌸", desc: "春季守在沼平車站彎道，拍攝紅色蒸汽火車駛過櫻花樹下的美麗瞬間。", diff: 4, rarity: "Epic", cat: "攝影", badgeId: "photographer" },
+            { id: 65, name: "合歡山銀河星空 🌌", desc: "在暗空公園石門山或武嶺，架三腳架拍下浩瀚璀璨的夏季銀河弧線。", diff: 4, rarity: "Epic", cat: "攝影", badgeId: "photographer" },
+            { id: 66, name: "九份老街夜燈高掛 🏮", desc: "在傍晚站在阿妹茶樓對面，記錄紅燈籠亮起、山城如神隱少女的幻麗。", diff: 3, rarity: "Rare", cat: "攝影", badgeId: "photographer" },
+            { id: 67, name: "老梅綠石槽春季奇觀 🌊", desc: "在三月至五月造訪石門老梅，拍下海浪拍打在嫩綠海藻覆蓋溝槽的震撼。", diff: 3, rarity: "Rare", cat: "攝影", badgeId: "photographer" },
+            { id: 68, name: "奇美博物館古典宏偉 🏛️", desc: "在台南仁德拍下宛如凡爾賽宮、潔白耀眼的奇美博物館阿波羅噴泉外觀。", diff: 2, rarity: "Common", cat: "攝影", badgeId: "photographer" },
+            { id: 69, name: "平溪支線彩繪火車 🚂", desc: "在十分或菁桐老街鐵道旁，捕捉火車貼著民宅區擦身而過的台式景觀。", diff: 2, rarity: "Common", cat: "攝影", badgeId: "photographer" },
+            { id: 70, name: "赤崁樓中式閣樓風采 🏛️", desc: "在台南捕捉赤崁樓與海神廟的中式雙簷屋頂與石碑群歷史風貌。", diff: 2, rarity: "Common", cat: "攝影", badgeId: "photographer" },
+
+            // Festivals 祭典 (71-80)
+            { id: 71, name: "看台北101跨年煙火 🎆", desc: "倒數跨年之際，現場感受台北101綻放狂野火花與紙花噴灑的震撼。", diff: 3, rarity: "Rare", cat: "祭典", badgeId: "festival" },
+            { id: 72, name: "台東熱氣球嘉年華 🎈", desc: "在鹿野高台看五彩繽紛的造型熱氣球緩緩升空，充滿童話色彩。", diff: 3, rarity: "Rare", cat: "祭典", badgeId: "festival" },
+            { id: 73, name: "新北歡樂耶誕城 🎄", desc: "冬日漫步板橋市民廣場，沉浸在全台最盛大夢幻的光雕聖誕樹燈海。", diff: 2, rarity: "Common", cat: "祭典", badgeId: "festival" },
+            { id: 74, name: "觀賞鹽水蜂炮 🎆", desc: "戴上全罩安全帽、穿厚衣衝入台南鹽水神轎行列，體驗蜂炮洗禮。", diff: 5, rarity: "Legendary", cat: "祭典", badgeId: "shrine" },
+            { id: 75, name: "平溪放天燈祈福 🏮", desc: "在平溪或十分鐵軌上，寫下心願，點火看天燈徐徐升向夜空。", diff: 2, rarity: "Common", cat: "祭典", badgeId: "festival" },
+            { id: 76, name: "媽祖進香/繞境體驗 ⛩️", desc: "參與大甲媽祖繞境或白沙屯媽祖進香，體驗徒步隨香與免費結緣齋食。", diff: 4, rarity: "Epic", cat: "祭典", badgeId: "shrine" },
+            { id: 77, name: "東港迎王平安祭典 ⛵", desc: "朝聖三年一科的東港王船祭，見證神聖壯麗的燒王船儀式。", diff: 5, rarity: "Legendary", cat: "祭典", badgeId: "shrine" },
+            { id: 78, name: "參與原住民豐年祭 🥁", desc: "尊重在地習俗，參與部落豐年祭豐收歌舞，感受豐收喜悅。", diff: 4, rarity: "Epic", cat: "祭典", badgeId: "festival" },
+            { id: 79, name: "朝聖台灣燈會 🏮", desc: "元宵佳節造訪台灣主燈會，觀賞巨大生肖主燈與各式藝術花燈展示。", diff: 2, rarity: "Common", cat: "祭典", badgeId: "festival" },
+            { id: 80, name: "體驗台東炸寒單 🔥", desc: "親臨現場目睹真人寒單爺肉身接受鞭炮狂炸的祈福場面。", diff: 5, rarity: "Legendary", cat: "祭典", badgeId: "shrine" },
+
+            // Islands 離島 (81-90)
+            { id: 81, name: "造訪澎湖群島 🏝️", desc: "搭船或飛機造訪澎湖，看觀音亭彩虹橋、品嚐仙人掌冰。", diff: 3, rarity: "Rare", cat: "離島", badgeId: "island" },
+            { id: 82, name: "造訪金門群島 🪨", desc: "參訪金門戰地遺跡，看閩南洋樓防空洞，並品嚐貢糖高粱。", diff: 3, rarity: "Rare", cat: "離島", badgeId: "island" },
+            { id: 83, name: "造訪馬祖群島 🌊", desc: "造訪馬祖南北竿，漫步芹壁聚落，看藍眼淚的夢幻微光。", diff: 3, rarity: "Rare", cat: "離島", badgeId: "island" },
+            { id: 84, name: "造訪屏東小琉球 🐢", desc: "搭乘交通船到小琉球浮潛，近距離觀看海龜優雅游動。", diff: 3, rarity: "Rare", cat: "離島", badgeId: "island" },
+            { id: 85, name: "造訪台東綠島 🏝️", desc: "踏上綠島體驗浮潛，享受全世界極少數的朝日海底海水溫泉。", diff: 3, rarity: "Rare", cat: "離島", badgeId: "island" },
+            { id: 86, name: "朝聖神秘蘭嶼 🛶", desc: "探訪蘭嶼達悟族文化，欣賞拼板舟、體驗無敵純淨原始海域藍色。", diff: 4, rarity: "Epic", cat: "離島", badgeId: "island" },
+            { id: 87, name: "探訪戰地軍事坑道 🪖", desc: "在金門或馬祖走進翟山坑道或八八坑道，感受歷史軍事震撼。", diff: 3, rarity: "Rare", cat: "離島" },
+            { id: 88, name: "離島租機車環島 🛵", desc: "在綠島、小琉球或澎湖迎風騎車，享受沒有紅綠燈的環島公路。", diff: 3, rarity: "Rare", cat: "離島", badgeId: "island" },
+            { id: 89, name: "品嚐離島特色美食 🍧", desc: "享用馬祖老酒麵線、金門炒泡麵、澎湖小管麵線等在地特產風味。", diff: 3, rarity: "Rare", cat: "離島" },
+            { id: 90, name: "離島觀賞絕美日落 🌅", desc: "在綠島帆船鼻、澎湖西嶼或金門建功嶼拍下壯麗的海平線夕陽。", diff: 3, rarity: "Rare", cat: "離島" },
+
+            // Challenges 極限挑戰 (91-100)
+            { id: 91, name: "挑戰單車環島 🚴‍♂️", desc: "騎單車克服長途疲憊，踩踏完成環繞台灣一圈的熱血公路旅程。", diff: 5, rarity: "Legendary", cat: "極限挑戰", badgeId: "challenger" },
+            { id: 92, name: "挑戰單車登武嶺 🚴‍♂️", desc: "從埔里或太魯閣出發，克服陡坡低溫，攻克台灣公路最高點武嶺（3275m）。", diff: 5, rarity: "Legendary", cat: "極限挑戰", badgeId: "challenger" },
+            { id: 93, name: "泳渡南投日月潭 🏊‍♂️", desc: "參與一年一度的泳渡日月潭盛會，泳渡約3000公尺的開闊湖面。", diff: 5, rarity: "Legendary", cat: "極限挑戰", badgeId: "challenger" },
+            { id: 94, name: "攀登台灣百岳之一 🥾", desc: "成功攀登並登頂台灣 100 座指定高山百岳之一，俯瞰高山雲海。", diff: 4, rarity: "Epic", cat: "極限挑戰", badgeId: "challenger" },
+            { id: 95, name: "登上東北亞第一高峰玉山 🏔️", desc: "成功挑戰並登頂台灣與東北亞最高峰——玉山主峰（3952m）。", diff: 5, rarity: "Legendary", cat: "極限挑戰", badgeId: "challenger" },
+            { id: 96, name: "登上雪山主峰看圈谷 🏔️", desc: "攀登台灣第二高峰雪山主峰，親眼目睹壯麗的冰斗圈谷遺留地形。", diff: 5, rarity: "Legendary", cat: "極限挑戰", badgeId: "challenger" },
+            { id: 97, name: "完成徒步環島 🥾", desc: "憑藉堅強意志力，一步一腳印走完環繞台灣整個本島一圈的壯闊步伐。", diff: 5, rarity: "Legendary", cat: "極限挑戰", badgeId: "challenger" },
+            { id: 98, name: "制霸台灣四極點燈塔 📍", desc: "收集並踩點極北（富貴角）、極東（三貂角）、極南（鵝鑾鼻）、極西（國聖港）四座極點燈塔。", diff: 4, rarity: "Epic", cat: "極限挑戰" },
+            { id: 99, name: "挑戰完成一日雙塔 🚴‍♂️", desc: "在 24 小時內騎單車挑戰從極北富貴角燈塔狂飆至極南鵝鑾鼻燈塔（約520公里）。", diff: 5, rarity: "Legendary", cat: "極限挑戰", badgeId: "challenger" },
+            { id: 100, name: "解鎖全台 22 縣市足跡 🗺️", desc: "踏足台灣所有 22 個縣市，在足跡地圖上蓋滿完美的拜訪記錄印章！", diff: 6, rarity: "Legendary", cat: "極限挑戰" }
+        ];
+
+        // --- 3. App State Variables ---
+        let appState = {
+            playerName: "台灣探險家",
+            playerAvatar: "🎒",
+            checkedAchievements: [],
+            visitedPrefectures: [],
+            customAchievements: [],
+            theme: "dark",
+            registered: false,
+            language: "zh-TW"
+        };
+
+        let activeFilters = {
+            search: "",
+            diff: "all",
+            rarity: "all",
+            status: "all",
+            badge: "all"
+        };
+
+        // --- 4. Web Audio Synthesizer ---
+        let audioCtx = null;
+        function playChime() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                freqs.forEach((freq, idx) => {
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                });
+                
+                gainNode.gain.setValueAtTime(0.12, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                osc.start(now);
+                osc.stop(now + 0.6);
+            } catch (e) {
+                console.warn("Audio Context blocked or unsupported:", e);
+            }
+        }
+
+        // --- 5. Particles Confetti System ---
+        let confettiActive = false;
+        let confettiParticles = [];
+        const confettiColors = ['#ff003c', '#00d2ff', '#ffd700', '#00ff87', '#9d4edd', '#ff85a2'];
+
+        function triggerConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            confettiParticles = [];
+            for (let i = 0; i < 80; i++) {
+                confettiParticles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height * 0.75,
+                    vx: (Math.random() - 0.5) * 18,
+                    vy: -Math.random() * 18 - 8,
+                    r: Math.random() * 5 + 3,
+                    color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+                    alpha: 1,
+                    gravity: 0.4,
+                    decay: Math.random() * 0.02 + 0.015
+                });
+            }
+            
+            if (!confettiActive) {
+                confettiActive = true;
+                requestAnimationFrame(updateConfetti);
+            }
+        }
+
+        function updateConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            let active = false;
+            confettiParticles.forEach(p => {
+                if (p.alpha > 0) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += p.gravity;
+                    p.alpha -= p.decay;
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = p.alpha;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                    active = true;
+                }
+            });
+            
+            ctx.globalAlpha = 1.0;
+            if (active) {
+                requestAnimationFrame(updateConfetti);
+            } else {
+                confettiActive = false;
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('confettiCanvas');
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+        });
+
+        // --- 6. Steam Style Notifications ---
+        let pendingNotifications = [];
+        let notificationTimeout = null;
+
+        function showNotification(title, desc, emoji) {
+            pendingNotifications.push({ title, desc, emoji });
+            if (notificationTimeout) clearTimeout(notificationTimeout);
+            notificationTimeout = setTimeout(flushNotifications, 200);
+        }
+
+        function flushNotifications() {
+            if (pendingNotifications.length === 0) return;
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const badgeNotifications = pendingNotifications.filter(n => n.title.includes("徽章") || n.title.includes("Badge"));
+            const regularNotifications = pendingNotifications.filter(n => !(n.title.includes("徽章") || n.title.includes("Badge")));
+
+            if (regularNotifications.length === 1) {
+                const item = regularNotifications[0];
+                createToastElement(item.title, item.desc, item.emoji);
+            } else if (regularNotifications.length > 1) {
+                const count = regularNotifications.length;
+                const lang = appState.language || 'zh-TW';
+                const title = lang === 'en' ? "🌟 Achievements Unlocked!" : "🌟 複數成就解除！";
+                const desc = lang === 'en' ? `You unlocked ${count} travel items at once!` : `您一口氣解鎖了 ${count} 個旅行項目！`;
+                createToastElement(title, desc, "🌟");
+            }
+
+            badgeNotifications.forEach(badgeItem => {
+                createToastElement(badgeItem.title, badgeItem.desc, badgeItem.emoji);
+            });
+
+            pendingNotifications = [];
+        }
+
+        function createToastElement(title, desc, emoji) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            if (container.children.length >= 4) {
+                container.children[0].remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.innerHTML = `
+                <div class="toast-icon">${emoji}</div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-desc">${desc}</div>
+                </div>
+            `;
+            container.appendChild(toast);
+            
+            playChime();
+            triggerConfetti();
+
+            setTimeout(() => {
+                toast.classList.add('hide');
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                });
+            }, 3000);
+        }
+
+        // --- 7. LocalStorage and State Management ---
+        function saveState() {
+            localStorage.setItem('taiwan_travel_achievements_state', JSON.stringify(appState));
+        }
+
+        function loadState() {
+            const local = localStorage.getItem('taiwan_travel_achievements_state');
+            if (local) {
+                try {
+                    const parsed = JSON.parse(local);
+                    appState = { ...appState, ...parsed };
+                } catch (e) {}
+            }
+            appState.customAchievements = sanitizeCustomAchievements(appState.customAchievements);
+            
+            if (!appState.language) {
+                appState.language = "zh-TW";
+            }
+            const langSelect = document.getElementById('langSelector');
+            if (langSelect) langSelect.value = appState.language;
+
+            document.documentElement.setAttribute('data-theme', appState.theme);
+            const themeBtnText = document.getElementById('themeToggleText');
+            if (themeBtnText) {
+                themeBtnText.textContent = appState.theme === 'light' ? getTranslation("themeToggleTextDark", "切換深色") : getTranslation("themeToggleTextLight", "切換淺色");
+            }
+            document.getElementById('playerName').value = appState.playerName;
+            document.getElementById('playerAvatar').textContent = appState.playerAvatar;
+
+            if (!appState.registered) {
+                document.getElementById('registerModalBackdrop').style.display = 'flex';
+                document.getElementById('registerPlayerName').value = '';
+                document.getElementById('registerAvatar').textContent = "🎒";
+            }
+        }
+
+        function resetAllProgress() {
+            const lang = appState.language || 'zh-TW';
+            const confirmMsg = getTranslation("resetConfirm", "⚠️ 確定要重置所有旅遊成就與縣市足跡嗎？此動作無法復原！");
+            if (confirm(confirmMsg)) {
+                appState.checkedAchievements = [];
+                appState.visitedPrefectures = [];
+                appState.customAchievements.forEach(c => c.done = false);
+                saveState();
+                updateUI();
+                const resetTitle = getTranslation("resetTitle", "進度重置");
+                const resetDesc = getTranslation("resetDesc", "已清除所有勾選記錄");
+                showNotification(resetTitle, resetDesc, "🧹");
+            }
+        }
+
+        function exportBackup() {
+            const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `taiwan_travel_achievements_${appState.playerName}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importBackup() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    try {
+                        const parsed = JSON.parse(evt.target.result);
+                        if (parsed && Array.isArray(parsed.checkedAchievements) && Array.isArray(parsed.visitedPrefectures)) {
+                            const validAchIds = new Set(achievementsData.map(a => a.id));
+                            const validPrefIds = new Set(prefecturesData.map(p => p.id));
+                            
+                            appState.checkedAchievements = parsed.checkedAchievements.filter(id => validAchIds.has(id));
+                            appState.visitedPrefectures = parsed.visitedPrefectures.filter(id => validPrefIds.has(id));
+                            appState.customAchievements = sanitizeCustomAchievements(parsed.customAchievements);
+                            
+                            if (parsed.playerName) appState.playerName = parsed.playerName.trim().slice(0, 15);
+                            if (parsed.playerAvatar) appState.playerAvatar = parsed.playerAvatar;
+                            if (parsed.theme) {
+                                appState.theme = parsed.theme;
+                                document.documentElement.setAttribute('data-theme', appState.theme);
+                            }
+                            if (parsed.registered !== undefined) appState.registered = parsed.registered;
+                            if (parsed.language) {
+                                appState.language = parsed.language;
+                                const langSelect = document.getElementById('langSelector');
+                                if (langSelect) langSelect.value = appState.language;
+                            }
+                            
+                            saveState();
+                            document.getElementById('playerName').value = appState.playerName;
+                            document.getElementById('playerAvatar').textContent = appState.playerAvatar;
+                            
+                            updateUI();
+                            
+                            const title = getTranslation("importSuccessTitle", "導入成功");
+                            const desc = getTranslation("importSuccessDesc", "你的旅遊進度已完全恢復");
+                            showNotification(title, desc, "💾");
+                        } else {
+                            throw new Error();
+                        }
+                    } catch (err) {
+                        const title = getTranslation("importErrorTitle", "導入失敗");
+                        const desc = getTranslation("importErrorDesc", "無效的備份檔案格式");
+                        showNotification(title, desc, "⚠️");
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function sanitizeCustomAchievements(arr) {
+            if (!Array.isArray(arr)) return [];
+            return arr.filter(item => item && item.id && item.name).slice(0, 10).map(item => ({
+                id: item.id,
+                name: item.name.slice(0, 30),
+                desc: (item.desc || "").slice(0, 60),
+                diff: Math.max(1, Math.min(5, parseInt(item.diff) || 1)),
+                done: !!item.done
+            }));
+        }
+
+        // --- 8. Level & Title System ---
+        function getLevelDetails(count) {
+            let title = "🌱 台灣新手";
+            let level = Math.floor(count / 10);
+            
+            if (count >= 0 && count <= 10) title = getTranslation("levelTitle0", "🌱 台灣新手");
+            else if (count >= 11 && count <= 25) title = getTranslation("levelTitle1", "🎒 自助旅行者");
+            else if (count >= 26 && count <= 45) title = getTranslation("levelTitle2", "✈ 台灣探索家");
+            else if (count >= 46 && count <= 65) title = getTranslation("levelTitle3", "🗾 台灣達人");
+            else if (count >= 66 && count <= 85) title = getTranslation("levelTitle4", "🎌 台灣專家");
+            else if (count >= 86 && count <= 99) title = getTranslation("levelTitle5", "👑 台灣通");
+            else if (count >= 100) title = getTranslation("levelTitle6", "🏯 台灣旅行神");
+            
+            return { title, level };
+        }
+
+        // --- 9. Badge Wall Logic ---
+        function getBadgeProgress(badgeId) {
+            const badge = badgeData.find(b => b.id === badgeId);
+            if (!badge) return { unlocked: false, count: 0, total: 0 };
+            
+            const done = new Set(appState.checkedAchievements);
+            const targetAchs = achievementsData.filter(a => a.badgeId === badgeId);
+            const completedCount = targetAchs.filter(a => done.has(a.id)).length;
+            
+            return {
+                unlocked: completedCount >= badge.threshold,
+                count: completedCount,
+                total: badge.threshold
+            };
+        }
+
+        // --- 10. Interactive Map Rendering ---
+        let prefCellMap = {};
+        
+        function renderMap() {
+            const mapContainer = document.getElementById('taiwanPrefMap');
+            if (!mapContainer) return;
+            mapContainer.innerHTML = '';
+            prefCellMap = {};
+
+            prefecturesData.forEach(pref => {
+                const cell = document.createElement('div');
+                cell.className = 'pref-cell';
+                cell.textContent = getTranslation("pref-short-" + pref.id, pref.name.substring(0, 2));
+                cell.style.gridRow = `${pref.row} / span 1`;
+                cell.style.gridColumn = `${pref.col} / span 1`;
+                cell.style.backgroundColor = pref.color + '22';
+                cell.style.borderColor = pref.color;
+                cell.setAttribute('role', 'button');
+                cell.setAttribute('tabindex', '0');
+                cell.setAttribute('aria-label', getTranslation("pref-name-" + pref.id, pref.name));
+
+                cell.onclick = () => togglePrefecture(pref.id);
+                cell.onkeydown = (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        togglePrefecture(pref.id);
+                    }
+                };
+                prefCellMap[pref.id] = cell;
+                mapContainer.appendChild(cell);
+            });
+
+            updateMap();
+        }
+
+        function updateMap() {
+            const visited = new Set(appState.visitedPrefectures);
+            prefecturesData.forEach(pref => {
+                const cell = prefCellMap[pref.id];
+                if (!cell) return;
+                const isVisited = visited.has(pref.id);
+                cell.classList.toggle('visited', isVisited);
+                cell.setAttribute('aria-pressed', String(isVisited));
+            });
+
+            renderRegionProgress();
+        }
+
+        function togglePrefecture(prefId) {
+            const idx = appState.visitedPrefectures.indexOf(prefId);
+            const prefObj = prefecturesData.find(p => p.id === prefId);
+            const added = idx === -1;
+
+            if (added) {
+                appState.visitedPrefectures.push(prefId);
+                const title = getTranslation("prefUnlockTitle", "拜訪打卡");
+                const desc = getTranslation("prefUnlockDesc", "已新增到訪足跡：{name}").replace("{name}", getTranslation("pref-name-" + prefId, prefObj.name));
+                showNotification(title, desc, "📍");
+                
+                const cell = prefCellMap[prefId];
+                if (cell) {
+                    cell.classList.add('stamp-anim');
+                    cell.addEventListener('animationend', () => cell.classList.remove('stamp-anim'), { once: true });
+                }
+
+                if (appState.visitedPrefectures.length === 22 && !appState.checkedAchievements.includes(100)) {
+                    toggleAchievement(100, true);
+                }
+            } else {
+                appState.visitedPrefectures.splice(idx, 1);
+                if (appState.checkedAchievements.includes(100)) {
+                    toggleAchievement(100, false);
+                }
+            }
+
+            saveState();
+            updateUI();
+        }
+
+        function renderRegionProgress() {
+            const panel = document.getElementById('regionsStatsPanel');
+            if (!panel) return;
+            panel.innerHTML = '';
+
+            const regions = ["北部", "中部", "南部", "東部", "離島"];
+            regions.forEach(reg => {
+                const prefsInReg = prefecturesData.filter(p => p.region === reg);
+                const total = prefsInReg.length;
+                const visited = prefsInReg.filter(p => appState.visitedPrefectures.includes(p.id)).length;
+                const pct = total > 0 ? Math.round((visited / total) * 100) : 0;
+
+                const card = document.createElement('div');
+                card.className = 'region-badge';
+                card.innerHTML = `
+                    <span class="region-badge-title">${getTranslation("reg-" + reg, reg)}</span>
+                    <span class="region-badge-value">${visited} / ${total}</span>
+                    <span style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-top: 2px;">${pct}%</span>
+                `;
+                panel.appendChild(card);
+            });
+
+            const visitedCount = appState.visitedPrefectures.length;
+            const pctAll = Math.round((visitedCount / 22) * 100);
+            const prefix = getTranslation("prefDisplayPrefix", "已踩點");
+            document.getElementById('totalPrefCount').textContent = `${prefix} ${visitedCount} / 22`;
+        }
+
+        // --- 11. HTML5 Canvas Radar Chart Rendering ---
+        function drawRadar(ctx, cx, cy, r, opts) {
+            const scores = getCategoryScores();
+            const numPoints = CATEGORIES.length;
+            const angleAt = (i) => (Math.PI * 2 / numPoints) * i - Math.PI / 2;
+
+            const rings = 4;
+            for (let j = 1; j <= rings; j++) {
+                const radius = (r / rings) * j;
+                ctx.beginPath();
+                for (let i = 0; i < numPoints; i++) {
+                    const x = cx + Math.cos(angleAt(i)) * radius;
+                    const y = cy + Math.sin(angleAt(i)) * radius;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.strokeStyle = opts.gridColor;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            if (opts.axisColor) {
+                for (let i = 0; i < numPoints; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx + Math.cos(angleAt(i)) * r, cy + Math.sin(angleAt(i)) * r);
+                    ctx.strokeStyle = opts.axisColor;
+                    ctx.stroke();
+                }
+            }
+
+            ctx.font = opts.labelFont;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (let i = 0; i < numPoints; i++) {
+                const xLabel = cx + Math.cos(angleAt(i)) * opts.labelDist;
+                const yLabel = cy + Math.sin(angleAt(i)) * (opts.labelDist + (opts.labelYExtra || 0));
+                ctx.fillStyle = opts.labelColor;
+                const translatedCat = getCategoryTranslation(CATEGORIES[i]);
+                const label = opts.withEmojis ? `${CATEGORY_EMOJIS[CATEGORIES[i]]}${translatedCat}` : translatedCat;
+                ctx.fillText(label, xLabel, yLabel);
+            }
+
+            ctx.beginPath();
+            for (let i = 0; i < numPoints; i++) {
+                const scoreRadius = scores[i] * r;
+                const x = cx + Math.cos(angleAt(i)) * scoreRadius;
+                const y = cy + Math.sin(angleAt(i)) * scoreRadius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fillStyle = opts.polyFill;
+            ctx.fill();
+            ctx.strokeStyle = opts.polyStroke;
+            ctx.lineWidth = opts.polyLineWidth || 2;
+            ctx.stroke();
+
+            if (opts.withDots) {
+                for (let i = 0; i < numPoints; i++) {
+                    const scoreRadius = scores[i] * r;
+                    const x = cx + Math.cos(angleAt(i)) * scoreRadius;
+                    const y = cy + Math.sin(angleAt(i)) * scoreRadius;
+                    ctx.beginPath();
+                    ctx.arc(x, y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = opts.polyStroke;
+                    ctx.fill();
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = '#fff';
+                    ctx.stroke();
+                }
+            }
+        }
+
+        function renderRadarChart() {
+            const canvas = document.getElementById('radarCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            const size = 300;
+            const dpr = window.devicePixelRatio || 1;
+            if (canvas.width !== size * dpr) {
+                canvas.width = size * dpr;
+                canvas.height = size * dpr;
+            }
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, size, size);
+
+            const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+            drawRadar(ctx, size / 2, size / 2, 90, {
+                gridColor: isDark ? 'rgba(42, 71, 94, 0.4)' : 'rgba(230, 220, 208, 0.8)',
+                axisColor: isDark ? 'rgba(42, 71, 94, 0.7)' : 'rgba(230, 220, 208, 1)',
+                labelColor: isDark ? '#c7d5e0' : '#2c2a29',
+                polyFill: isDark ? 'rgba(0, 210, 255, 0.25)' : 'rgba(215, 19, 24, 0.2)',
+                polyStroke: isDark ? '#00d2ff' : '#d71318',
+                labelFont: 'bold 11px sans-serif',
+                labelDist: 112,
+                labelYExtra: 2,
+                withDots: true,
+                withEmojis: true
+            });
+        }
+
+        // --- 12. Category Scores Calculation ---
+        const CATEGORIES = ["交通", "美食", "文化", "自然", "住宿", "購物", "攝影", "祭典", "離島", "極限挑戰"];
+        
+        const CATEGORY_EMOJIS = {
+            "交通": "🚄",
+            "美食": "🍢",
+            "文化": "🏮",
+            "自然": "🏔️",
+            "住宿": "🏡",
+            "購物": "🛒",
+            "攝影": "📷",
+            "祭典": "🥁",
+            "離島": "🚢",
+            "極限挑戰": "🚴‍♂️"
+        };
+
+        function getCategoryScores() {
+            const done = new Set(appState.checkedAchievements);
+            return CATEGORIES.map(cat => {
+                const inCat = achievementsData.filter(a => a.cat === cat);
+                const doneCount = inCat.filter(a => done.has(a.id)).length;
+                return inCat.length > 0 ? (doneCount / inCat.length) : 0;
+            });
+        }
+
+        // --- 13. Dynamic Achievements Database Renderer ---
+        const collapsiblesState = {};
+
+        function buildAchievements() {
+            const container = document.getElementById('achievementsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const doneSet = new Set(appState.checkedAchievements);
+
+            CATEGORIES.forEach(cat => {
+                const inCat = achievementsData.filter(a => a.cat === cat);
+                const filtered = inCat.filter(ach => {
+                    const matchesSearch = activeFilters.search === "" ||
+                        getTranslation("ach-name-" + ach.id, ach.name).toLowerCase().includes(activeFilters.search.toLowerCase()) ||
+                        getTranslation("ach-desc-" + ach.id, ach.desc).toLowerCase().includes(activeFilters.search.toLowerCase());
+                    const matchesDiff = activeFilters.diff === "all" || ach.diff === parseInt(activeFilters.diff);
+                    const matchesRarity = activeFilters.rarity === "all" || ach.rarity === activeFilters.rarity;
+                    const isCompleted = doneSet.has(ach.id);
+                    const matchesStatus = activeFilters.status === "all" ||
+                        (activeFilters.status === "completed" && isCompleted) ||
+                        (activeFilters.status === "uncompleted" && !isCompleted);
+                    const matchesBadge = activeFilters.badge === "all" || ach.badgeId === activeFilters.badge;
+
+                    return matchesSearch && matchesDiff && matchesRarity && matchesStatus && matchesBadge;
+                });
+
+                if (filtered.length === 0 && activeFilters.badge !== "all") return;
+                if (filtered.length === 0 && (activeFilters.search !== "" || activeFilters.diff !== "all" || activeFilters.rarity !== "all" || activeFilters.status !== "all")) {
+                    return;
+                }
+
+                const catWrapper = document.createElement('div');
+                catWrapper.className = 'category-wrapper';
+                const catKey = 'collapsed-' + cat;
+                if (collapsiblesState[catKey]) catWrapper.classList.add('collapsed');
+
+                const catProgress = inCat.filter(a => doneSet.has(a.id)).length;
+                const catPercent = Math.round((catProgress / inCat.length) * 100);
+
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.innerHTML = `
+                    <span class="category-header-title">${CATEGORY_EMOJIS[cat]} ${getCategoryTranslation(cat)}</span>
+                    <span class="category-progress-pill">${catProgress} / ${inCat.length} (${catPercent}%)</span>
+                `;
+                
+                header.onclick = () => {
+                    const collapsed = catWrapper.classList.toggle('collapsed');
+                    collapsiblesState[catKey] = collapsed;
+                };
+
+                const content = document.createElement('div');
+                content.className = 'category-content';
+
+                if (filtered.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'empty-results-hint';
+                    empty.textContent = appState.language === 'en' ? 'No achievements matching the filters.' : '沒有符合篩選條件的成就。';
+                    content.appendChild(empty);
+                } else {
+                    filtered.forEach(ach => {
+                        const card = document.createElement('div');
+                        const isDone = doneSet.has(ach.id);
+                        const isHidden = ach.diff === 6;
+                        card.className = `achievement-card ${isDone ? 'completed' : ''} ${isHidden ? 'hidden-ach' : ''}`;
+                        card.setAttribute('role', 'checkbox');
+                        card.setAttribute('aria-checked', String(isDone));
+                        card.onclick = () => toggleAchievement(ach.id);
+
+                        const stars = '★'.repeat(Math.min(ach.diff, 5)) + '☆'.repeat(Math.max(0, 5 - ach.diff));
+                        const rarityText = ach.rarity;
+                        const rarityClass = 'rarity-' + ach.rarity.toLowerCase();
+
+                        let achName = getTranslation("ach-name-" + ach.id, ach.name);
+                        let achDesc = getTranslation("ach-desc-" + ach.id, ach.desc);
+                        
+                        if (isHidden && !isDone) {
+                            achName = getTranslation("hiddenAchName", "??? 隱藏成就");
+                            achDesc = getTranslation("hiddenAchDesc", "解鎖或滑鼠懸停以揭曉內容。");
+                        }
+
+                        card.innerHTML = `
+                            <div class="ach-checkbox-container">
+                                <div class="ach-checkbox-custom">${isDone ? '✓' : ''}</div>
+                            </div>
+                            <div class="ach-detail-section">
+                                <div class="ach-title-row">
+                                    <span class="ach-title">${achName}</span>
+                                    <span class="rarity-pill ${rarityClass}">${rarityText}</span>
+                                </div>
+                                <div class="ach-desc">${achDesc}</div>
+                                <div class="ach-meta-row">
+                                    <span class="ach-difficulty-stars">${isHidden ? '★★★★★★' : stars}</span>
+                                    <span>ID: ${ach.id}</span>
+                                </div>
+                            </div>
+                            ${isHidden && !isDone ? `<div class="hidden-ach-overlay" data-i18n="hiddenOverlayText">🔒 STEAM 隱藏成就</div>` : ''}
+                        `;
+                        content.appendChild(card);
+                    });
+                }
+
+                catWrapper.appendChild(header);
+                catWrapper.appendChild(content);
+                container.appendChild(catWrapper);
+            });
+
+            if (container.children.length === 0) {
+                const emptyOuter = document.createElement('div');
+                emptyOuter.className = 'card empty-results-hint';
+                emptyOuter.textContent = appState.language === 'en' ? 'No items match your filters.' : '沒有任何符合條件的成就。';
+                container.appendChild(emptyOuter);
+            }
+        }
+
+        function toggleAchievement(achId, forceState) {
+            const idx = appState.checkedAchievements.indexOf(achId);
+            const achObj = achievementsData.find(a => a.id === achId);
+            const added = forceState !== undefined ? forceState : idx === -1;
+
+            if (added) {
+                if (idx === -1) appState.checkedAchievements.push(achId);
+                const title = getTranslation("achUnlockTitle", "成就解除！");
+                const desc = getTranslation("ach-name-" + achId, achObj.name);
+                showNotification(title, desc, "🏆");
+                checkBadgeUnlocks();
+            } else {
+                if (idx !== -1) appState.checkedAchievements.splice(idx, 1);
+            }
+
+            saveState();
+            updateUI();
+        }
+
+        function checkBadgeUnlocks() {
+            badgeData.forEach(badge => {
+                const stat = getBadgeProgress(badge.id);
+                const done = new Set(appState.checkedAchievements);
+                const targetAchs = achievementsData.filter(a => a.badgeId === badge.id);
+                const completedCount = targetAchs.filter(a => done.has(a.id)).length;
+                if (completedCount === badge.threshold) {
+                    const title = getTranslation("badgeUnlockTitle", "解鎖榮譽徽章！");
+                    const desc = getTranslation("badgeUnlockDesc", "{emoji} [{name}] 已加入收藏牆")
+                        .replace("{emoji}", badge.emoji)
+                        .replace("{name}", getTranslation("badge-name-" + badge.id, badge.name));
+                    showNotification(title, desc, "🏅");
+                }
+            });
+        }
+
+        // --- 14. Custom Achievements Logic ---
+        function renderCustomAchievements() {
+            const listContainer = document.getElementById('customAchList');
+            if (!listContainer) return;
+            listContainer.innerHTML = '';
+
+            const arr = appState.customAchievements;
+
+            if (arr.length === 0) {
+                const hint = document.createElement('p');
+                hint.style.fontSize = '13px';
+                hint.style.color = 'var(--text-muted)';
+                hint.style.textAlign = 'center';
+                hint.style.margin = '20px 0';
+                hint.textContent = getTranslation("customAchEmptyHint", "還沒有自訂成就。把官方清單沒有、但對你別具意義的旅行時刻記下來吧！（最多 10 個，會計入總成就與等級）");
+                listContainer.appendChild(hint);
+                return;
+            }
+
+            arr.forEach(ach => {
+                const card = document.createElement('div');
+                card.className = `achievement-card ${ach.done ? 'completed' : ''}`;
+                card.style.cursor = 'default';
+                card.innerHTML = `
+                    <div class="ach-checkbox-container" onclick="toggleCustomAchDone(${ach.id})" style="cursor: pointer;">
+                        <div class="ach-checkbox-custom">${ach.done ? '✓' : ''}</div>
+                    </div>
+                    <div class="ach-detail-section">
+                        <div class="ach-title-row">
+                            <span class="ach-title">${ach.name}</span>
+                            <span class="rarity-pill rarity-custom" data-i18n="customAchLabel">自訂</span>
+                        </div>
+                        <div class="ach-desc">${ach.desc || getTranslation("customAchDefaultDesc", '由你親自訂立的專屬成就。')}</div>
+                        <div class="ach-meta-row">
+                            <span class="ach-difficulty-stars">${'★'.repeat(ach.diff) + '☆'.repeat(5 - ach.diff)}</span>
+                            <div class="custom-ach-actions">
+                                <button class="btn" style="padding: 3px 8px; font-size: 11px;" onclick="openCustomAchModal('edit', ${ach.id})" data-i18n="editBtnTitle">編輯</button>
+                                <button class="btn" style="padding: 3px 8px; font-size: 11px; border-color: rgba(255,0,0,0.2);" onclick="deleteCustomAchievement(${ach.id})" data-i18n="deleteBtnTitle">刪除</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        let customModalMode = 'add';
+        let editingCustomId = null;
+
+        function openCustomAchModal(mode, id) {
+            customModalMode = mode;
+            editingCustomId = id || null;
+            const backdrop = document.getElementById('customAchModalBackdrop');
+            backdrop.style.display = 'flex';
+
+            const title = document.getElementById('customAchModalTitle');
+            if (mode === 'add') {
+                title.textContent = getTranslation("customAchModalTitleAdd", "🌟 新增自訂成就");
+                document.getElementById('customAchName').value = '';
+                document.getElementById('customAchDesc').value = '';
+                document.getElementById('customAchDiff').value = '1';
+            } else {
+                title.textContent = getTranslation("customAchModalTitleEdit", "✏️ 編輯自訂成就");
+                const ach = appState.customAchievements.find(c => c.id === id);
+                if (ach) {
+                    document.getElementById('customAchName').value = ach.name;
+                    document.getElementById('customAchDesc').value = ach.desc;
+                    document.getElementById('customAchDiff').value = String(ach.diff);
+                }
+            }
+        }
+
+        function closeCustomAchModal() {
+            document.getElementById('customAchModalBackdrop').style.display = 'none';
+        }
+
+        function saveCustomAchievement() {
+            const name = document.getElementById('customAchName').value.trim();
+            const desc = document.getElementById('customAchDesc').value.trim();
+            const diff = parseInt(document.getElementById('customAchDiff').value) || 1;
+
+            if (!name) {
+                alert(getTranslation("customAchNameRequired", "請輸入成就名稱！"));
+                return;
+            }
+
+            if (customModalMode === 'add') {
+                if (appState.customAchievements.length >= 10) {
+                    const title = getTranslation("customAchLimitTitle", "自訂成就上限");
+                    const msg = getTranslation("customAchLimitDesc", "最多只能建立 {limit} 個自訂成就").replace("{limit}", "10");
+                    showNotification(title, msg, "⚠️");
+                    closeCustomAchModal();
+                    return;
+                }
+                const newId = Date.now();
+                appState.customAchievements.push({
+                    id: newId,
+                    name: name.slice(0, 30),
+                    desc: desc.slice(0, 60),
+                    diff: diff,
+                    done: false
+                });
+                
+                const notifTitle = getTranslation("customAchAddTitle", "已建立自訂成就");
+                showNotification(notifTitle, name, "🌟");
+            } else {
+                const ach = appState.customAchievements.find(c => c.id === editingCustomId);
+                if (ach) {
+                    ach.name = name.slice(0, 30);
+                    ach.desc = desc.slice(0, 60);
+                    ach.diff = diff;
+                }
+            }
+
+            saveState();
+            closeCustomAchModal();
+            updateUI();
+        }
+
+        function deleteCustomAchievement(id) {
+            const ach = appState.customAchievements.find(c => c.id === id);
+            if (!ach) return;
+            const confirmMsg = getTranslation("customAchDeleteConfirm", "確定要刪除自訂成就「{name}」嗎？").replace("{name}", ach.name);
+            if (confirm(confirmMsg)) {
+                appState.customAchievements = appState.customAchievements.filter(c => c.id !== id);
+                saveState();
+                updateUI();
+            }
+        }
+
+        function toggleCustomAchDone(id) {
+            const ach = appState.customAchievements.find(c => c.id === id);
+            if (ach) {
+                ach.done = !ach.done;
+                if (ach.done) {
+                    const title = getTranslation("achUnlockTitle", "成就解除！");
+                    showNotification(title, ach.name, "🏆");
+                }
+                saveState();
+                updateUI();
+            }
+        }
+
+        // --- 15. Profile Badge Showcase Renderers ---
+        function renderBadgeWall() {
+            const wall = document.getElementById('badgeWallGrid');
+            const quickFiltersContainer = document.getElementById('badgeQuickFiltersRow');
+            if (!wall) return;
+            
+            wall.innerHTML = '';
+            if (quickFiltersContainer) {
+                quickFiltersContainer.innerHTML = '';
+            }
+
+            badgeData.forEach(badge => {
+                const stat = getBadgeProgress(badge.id);
+                const item = document.createElement('div');
+                item.className = `badge-item ${stat.unlocked ? 'unlocked' : ''}`;
+                item.setAttribute('role', 'img');
+                
+                const titleStr = getTranslation("badge-name-" + badge.id, badge.name);
+                const descStr = getTranslation("badge-desc-" + badge.id, badge.desc);
+
+                item.innerHTML = `
+                    <span>${badge.emoji}</span>
+                    <div class="badge-tooltip">
+                        <div class="badge-tooltip-title">${titleStr}</div>
+                        <div class="badge-tooltip-desc">${descStr}</div>
+                        <div style="margin-top: 4px; font-weight: 700; color: var(--accent-blue);">${stat.count} / ${stat.total}</div>
+                    </div>
+                `;
+                wall.appendChild(item);
+
+                if (quickFiltersContainer) {
+                    const tag = document.createElement('div');
+                    tag.className = `quick-filter-tag ${activeFilters.badge === badge.id ? 'active' : ''}`;
+                    tag.id = `badgeTag-${badge.id}`;
+                    tag.onclick = () => handleBadgeFilter(badge.id);
+                    tag.innerHTML = `<span>${badge.emoji}</span> <span>${titleStr}</span>`;
+                    quickFiltersContainer.appendChild(tag);
+                }
+            });
+        }
+
+        // --- 16. Filtering System ---
+        function handleFilterChange() {
+            activeFilters.search = document.getElementById('searchFilter').value;
+            activeFilters.diff = document.getElementById('diffFilter').value;
+            activeFilters.rarity = document.getElementById('rarityFilter').value;
+            activeFilters.status = document.getElementById('statusFilter').value;
+            buildAchievements();
+        }
+
+        function handleBadgeFilter(badgeId) {
+            const tags = document.querySelectorAll('.quick-filter-tag');
+            tags.forEach(t => t.classList.remove('active'));
+
+            const activeTag = document.getElementById(`badgeTag-${badgeId}`);
+            if (activeTag) activeTag.classList.add('active');
+
+            activeFilters.badge = badgeId;
+            buildAchievements();
+        }
+
+        // --- 17. Multi-Language and I18n Manager ---
+        function getTranslation(key, defaultVal) {
+            const lang = appState.language || 'zh-TW';
+            if (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) {
+                return TRANSLATIONS[lang][key];
+            }
+            return defaultVal || key;
+        }
+
+        function getCategoryTranslation(cat) {
+            return getTranslation("cat-" + cat, cat);
+        }
+
+        function updateStaticTranslations() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = getTranslation(key, el.textContent);
+            });
+
+            const placeholders = document.querySelectorAll('[data-i18n-placeholder]');
+            placeholders.forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                el.placeholder = getTranslation(key, el.placeholder);
+            });
+
+            const titles = document.querySelectorAll('[data-i18n-title]');
+            titles.forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                el.title = getTranslation(key, el.title);
+            });
+        }
+
+        // --- 18. Share Card Canvas Compositor ---
+        function truncateToWidth(ctx, text, maxWidth) {
+            let t = text;
+            let w = ctx.measureText(t).width;
+            if (w <= maxWidth) return t;
+            while (w > maxWidth && t.length > 0) {
+                t = t.substring(0, t.length - 1);
+                w = ctx.measureText(t + '…').width;
+            }
+            return t + '…';
+        }
+
+        function generateShareCard() {
+            const backdrop = document.getElementById('shareModalBackdrop');
+            const canvas = document.getElementById('sharingPreviewCanvas');
+            const ctx = canvas.getContext('2d');
+
+            if (typeof ctx.roundRect !== 'function') {
+                ctx.roundRect = function (x, y, w, h, r) {
+                    if (typeof r === 'number') r = [r, r, r, r];
+                    else if (Array.isArray(r)) {
+                        if (r.length === 1) r = [r[0], r[0], r[0], r[0]];
+                        else if (r.length === 2) r = [r[0], r[1], r[0], r[1]];
+                        else if (r.length === 3) r = [r[0], r[1], r[2], r[1]];
+                    } else r = [0, 0, 0, 0];
+                    this.beginPath();
+                    this.moveTo(x + r[0], y);
+                    this.lineTo(x + w - r[1], y);
+                    this.quadraticCurveTo(x + w, y, x + w, y + r[1]);
+                    this.lineTo(x + w, y + h - r[2]);
+                    this.quadraticCurveTo(x + w, y + h, x + w - r[2], y + h);
+                    this.lineTo(x + r[3], y + h);
+                    this.quadraticCurveTo(x, y + h, x, y + h - r[3]);
+                    this.lineTo(x, y + r[0]);
+                    this.quadraticCurveTo(x, y, x + r[0], y);
+                    this.closePath();
+                    return this;
+                };
+            }
+
+            const isDark = appState.theme !== 'light';
+            
+            if (isDark) {
+                const grad = ctx.createRadialGradient(400, 600, 100, 400, 600, 700);
+                grad.addColorStop(0, '#1f2d3d');
+                grad.addColorStop(1, '#0e141b');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 800, 1200);
+
+                ctx.strokeStyle = '#2a475e';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(10, 10, 780, 1180);
+                ctx.strokeStyle = '#00d2ff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(20, 20, 760, 1160);
+            } else {
+                ctx.fillStyle = '#faf6f0';
+                ctx.fillRect(0, 0, 800, 1200);
+                
+                ctx.strokeStyle = '#e6dcd0';
+                ctx.lineWidth = 10;
+                ctx.strokeRect(10, 10, 780, 1180);
+                ctx.strokeStyle = '#d71318';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(20, 20, 760, 1160);
+            }
+
+            ctx.font = 'bold 36px sans-serif';
+            ctx.fillStyle = isDark ? '#ffffff' : '#2c2a29';
+            ctx.textAlign = 'center';
+            ctx.fillText(getTranslation("shareCardTitle", "台灣旅行成就記錄卡"), 400, 80);
+            
+            ctx.font = '800 14px sans-serif';
+            ctx.fillStyle = isDark ? '#00d2ff' : '#d71318';
+            ctx.fillText('TAIWAN TRAVEL ACHIEVEMENT CARD', 400, 115);
+
+            ctx.beginPath();
+            ctx.moveTo(60, 140);
+            ctx.lineTo(740, 140);
+            ctx.strokeStyle = isDark ? '#2a475e' : '#e6dcd0';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.font = '80px sans-serif';
+            ctx.fillText(appState.playerAvatar, 140, 230);
+
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 28px sans-serif';
+            ctx.fillStyle = isDark ? '#ffffff' : '#2c2a29';
+            ctx.fillText(truncateToWidth(ctx, appState.playerName, 225), 230, 195);
+            
+            const cardTotals = getAchievementTotals();
+            const lvlDetails = getLevelDetails(cardTotals.completed);
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillStyle = isDark ? '#ffd700' : '#d71318';
+            const levelLabel = getTranslation("levelLabel", "等級");
+            ctx.fillText(`${levelLabel} ${lvlDetails.level} • ${lvlDetails.title}`, 230, 235);
+
+            ctx.fillStyle = isDark ? '#1b2838' : '#ffffff';
+            ctx.strokeStyle = isDark ? '#2a475e' : '#e6dcd0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(470, 160, 270, 95, 12);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.fillStyle = isDark ? '#c7d5e0' : '#5a5754';
+            ctx.fillText(getTranslation("totalUnlockRateLabel", "總成就解鎖率"), 535, 195);
+            ctx.fillText(getTranslation("mapTitleLabel", "縣市足跡"), 675, 195);
+
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillStyle = isDark ? '#00d2ff' : '#d71318';
+            const achPct = Math.round((cardTotals.completed / cardTotals.total) * 100);
+            const prefPct = Math.round((appState.visitedPrefectures.length / 22) * 100);
+            ctx.fillText(`${achPct}%`, 535, 230);
+            ctx.fillText(`${prefPct}%`, 675, 230);
+
+            ctx.beginPath();
+            ctx.moveTo(60, 290);
+            ctx.lineTo(740, 290);
+            ctx.stroke();
+
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#c7d5e0' : '#2c2a29';
+            ctx.fillText(getTranslation("radarChartTitleLabel", "📊 分類探索度"), 60, 330);
+
+            drawRadar(ctx, 220, 510, 100, {
+                gridColor: isDark ? 'rgba(42, 71, 94, 0.4)' : 'rgba(230, 220, 208, 0.8)',
+                labelColor: isDark ? '#c7d5e0' : '#2c2a29',
+                polyFill: isDark ? 'rgba(0, 210, 255, 0.25)' : 'rgba(215, 19, 24, 0.2)',
+                polyStroke: isDark ? '#00d2ff' : '#d71318',
+                labelFont: 'bold 14px sans-serif',
+                labelDist: 124
+            });
+
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#c7d5e0' : '#2c2a29';
+            ctx.fillText(getTranslation("badgeWallTitleLabel", "🏆 解鎖榮譽徽章牆"), 430, 330);
+
+            let bx = 430, by = 360;
+            let count = 0;
+            badgeData.forEach(badge => {
+                const stat = getBadgeProgress(badge.id);
+                
+                ctx.save();
+                if (!stat.unlocked) {
+                    ctx.globalAlpha = 0.2;
+                }
+                
+                ctx.fillStyle = isDark ? '#1b2838' : '#ffffff';
+                ctx.strokeStyle = stat.unlocked ? (isDark ? '#ffd700' : '#d71318') : (isDark ? '#2a475e' : '#e6dcd0');
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(bx + 25, by + 25, 25, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.font = '28px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(badge.emoji, bx + 25, by + 27);
+                
+                ctx.restore();
+
+                bx += 65;
+                count++;
+                if (count % 5 === 0) {
+                    bx = 430;
+                    by += 65;
+                }
+            });
+
+            ctx.beginPath();
+            ctx.moveTo(60, 680);
+            ctx.lineTo(740, 680);
+            ctx.strokeStyle = isDark ? '#2a475e' : '#e6dcd0';
+            ctx.stroke();
+
+            ctx.textAlign = 'left';
+            ctx.font = 'bold 20px sans-serif';
+            ctx.fillStyle = isDark ? '#c7d5e0' : '#2c2a29';
+            ctx.fillText(getTranslation("showcaseTitleLabel", "🌟 最引以為傲的冒險成就"), 60, 720);
+
+            const unlockedAchs = achievementsData.filter(a => appState.checkedAchievements.includes(a.id))
+                .concat(appState.customAchievements.filter(c => c.done).map(c => ({ ...c, rarity: 'Custom', cat: '自訂' })));
+            unlockedAchs.sort((a, b) => b.diff - a.diff || b.id - a.id);
+            const showcase = unlockedAchs.slice(0, 3);
+
+            let achY = 760;
+            for (let i = 0; i < 3; i++) {
+                ctx.fillStyle = isDark ? '#1b2838' : '#ffffff';
+                ctx.strokeStyle = isDark ? '#2a475e' : '#e6dcd0';
+                ctx.beginPath();
+                ctx.roundRect(60, achY, 680, 100, 12);
+                ctx.fill();
+                ctx.stroke();
+
+                if (showcase[i]) {
+                    const ach = showcase[i];
+                    ctx.font = 'bold 18px sans-serif';
+                    ctx.fillStyle = isDark ? '#ffffff' : '#2c2a29';
+                    const achName = getTranslation("ach-name-" + ach.id, ach.name);
+                    ctx.fillText(truncateToWidth(ctx, achName, 215), 90, achY + 40);
+
+                    const starsText = '★'.repeat(ach.diff) + '☆'.repeat(5 - Math.min(ach.diff, 5));
+                    ctx.font = '12px sans-serif';
+                    ctx.fillStyle = isDark ? '#ffd700' : '#d71318';
+                    ctx.fillText(starsText, 90, achY + 75);
+
+                    ctx.font = 'bold 10px sans-serif';
+                    ctx.fillStyle = isDark ? '#00ff87' : '#2e5c1e';
+                    const customLabel = getTranslation("customAchLabel", "自訂");
+                    const rarityLabel = ach.rarity === 'Custom' ? customLabel : ach.rarity;
+                    ctx.fillText(`[${rarityLabel.toUpperCase()}]`, 220, achY + 74);
+
+                    ctx.font = '13px sans-serif';
+                    ctx.fillStyle = isDark ? '#c7d5e0' : '#5a5754';
+                    const customDesc = getTranslation("customAchDefaultDesc", '由你親自訂立的專屬成就。');
+                    const achDesc = getTranslation("ach-desc-" + ach.id, ach.desc || customDesc);
+                    ctx.fillText(truncateToWidth(ctx, achDesc, 400), 320, achY + 40);
+                    const catLabel = getTranslation("catLabel", "分類：");
+                    const catName = getCategoryTranslation(ach.cat);
+                    ctx.fillText(`${catLabel}${catName}`, 320, achY + 70);
+                } else {
+                    ctx.font = 'italic 16px sans-serif';
+                    ctx.fillStyle = isDark ? '#8fa0b0' : '#8b8882';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(getTranslation("showcaseEmptyLabel", '尚無解鎖此欄位之高級成就，趕快去旅行吧！'), 400, achY + 55);
+                    ctx.textAlign = 'left';
+                }
+                achY += 120;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(60, 1120);
+            ctx.lineTo(740, 1120);
+            ctx.strokeStyle = isDark ? '#2a475e' : '#e6dcd0';
+            ctx.stroke();
+
+            ctx.font = 'bold 13px sans-serif';
+            ctx.fillStyle = isDark ? '#8fa0b0' : '#8b8882';
+            ctx.textAlign = 'left';
+            ctx.fillText(getTranslation("shareCardFooter", "本成就卡由「台灣旅行成就系統」產出"), 60, 1150);
+            
+            ctx.textAlign = 'right';
+            ctx.fillText('yblog.org • ivanusto', 740, 1150);
+
+            backdrop.style.display = 'flex';
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModalBackdrop').style.display = 'none';
+        }
+
+        function triggerCardDownload() {
+            const canvas = document.getElementById('sharingPreviewCanvas');
+            const a = document.createElement('a');
+            a.href = canvas.toDataURL('image/png');
+            a.download = `taiwan_travel_achievement_${appState.playerName}.png`;
+            a.click();
+        }
+
+        function downloadShareCard() {
+            triggerCardDownload();
+            closeShareModal();
+            const title = getTranslation("shareCardNotifyTitle", "圖卡下載成功");
+            const desc = getTranslation("shareCardNotifyDesc", "歡迎分享到 Threads 或 Instagram！");
+            showNotification(title, desc, "📸");
+        }
+
+        // --- 18.5 Social Share Intents ---
+        const SHARE_URL = 'https://ivanusto.github.io/taiwan-travel-achievement-list/';
+
+        function buildShareText() {
+            const totals = getAchievementTotals();
+            const prefCount = appState.visitedPrefectures.length;
+            const lang = appState.language || 'zh-TW';
+            if (lang === 'en') {
+                return `I unlocked ${totals.completed}/${totals.total} achievements and visited ${prefCount}/22 counties/cities in the "Taiwan Travel Achievements" system! Come and check your travel footprint ✨`;
+            } else if (lang === 'ja') {
+                return `「台灣旅行成就系統」で ${totals.completed}/${totals.total} 個の実績を解除し、${prefCount}/22 の県・市を訪問しました！あなたも台湾旅行の足跡を記録してみませんか？ ✨`;
+            }
+            return `我在「台灣旅行成就系統」解鎖了 ${totals.completed}/${totals.total} 項成就、踩點 ${prefCount}/22 個縣市！快來挑戰你的台灣旅行足跡 ✨`;
+        }
+
+        function shareToSocial(platform) {
+            const text = buildShareText();
+            let shareLink = '';
+
+            switch (platform) {
+                case 'x':
+                    shareLink = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(SHARE_URL)}`;
+                    break;
+                case 'threads':
+                    shareLink = `https://www.threads.net/intent/post?text=${encodeURIComponent(text + ' ' + SHARE_URL)}`;
+                    break;
+                case 'facebook':
+                    shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(SHARE_URL)}&quote=${encodeURIComponent(text)}`;
+                    break;
+            }
+
+            if (shareLink) window.open(shareLink, '_blank');
+        }
+
+        // --- 19. Avatar Selection Handlers ---
+        let avatarTarget = 'profile';
+
+        function openAvatarPicker(target) {
+            avatarTarget = target || 'profile';
+            const backdrop = document.getElementById('avatarPickerBackdrop');
+            const grid = document.getElementById('avatarPickerGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            avatars.forEach(emoji => {
+                const opt = document.createElement('div');
+                opt.className = 'avatar-option';
+                opt.textContent = emoji;
+                opt.onclick = () => selectAvatar(emoji);
+                grid.appendChild(opt);
+            });
+
+            backdrop.style.display = 'flex';
+        }
+
+        function closeAvatarPicker() {
+            document.getElementById('avatarPickerBackdrop').style.display = 'none';
+        }
+
+        function selectAvatar(emoji) {
+            if (avatarTarget === 'profile') {
+                appState.playerAvatar = emoji;
+                document.getElementById('playerAvatar').textContent = emoji;
+                saveState();
+                showNotification(appState.language === 'en' ? "Avatar Updated" : "頭像已更新", emoji, "👤");
+            } else {
+                document.getElementById('registerAvatar').textContent = emoji;
+            }
+            closeAvatarPicker();
+        }
+
+        // --- 20. Main UI Synchronization Manager ---
+        function getAchievementTotals() {
+            const officialCount = achievementsData.length;
+            const officialCompleted = appState.checkedAchievements.length;
+            
+            const customCount = appState.customAchievements.length;
+            const customCompleted = appState.customAchievements.filter(c => c.done).length;
+
+            return {
+                completed: officialCompleted + customCompleted,
+                total: officialCount + customCount
+            };
+        }
+
+        function savePlayerName(val) {
+            appState.playerName = val.trim() || "台灣探險家";
+            saveState();
+        }
+
+        function toggleTheme() {
+            if (appState.theme === 'light') {
+                appState.theme = 'dark';
+            } else {
+                appState.theme = 'light';
+            }
+            document.documentElement.setAttribute('data-theme', appState.theme);
+            const themeBtnText = document.getElementById('themeToggleText');
+            if (themeBtnText) {
+                themeBtnText.textContent = appState.theme === 'light' ? getTranslation("themeToggleTextDark", "切換深色") : getTranslation("themeToggleTextLight", "切換淺色");
+            }
+            saveState();
+            renderRadarChart();
+        }
+
+        function changeLanguage(lang) {
+            appState.language = lang;
+            saveState();
+            
+            const currentName = document.getElementById('playerName').value;
+            if (currentName === "台灣探險家" || currentName === "Taiwan Explorer") {
+                const defaultName = getTranslation("defaultPlayerName", "台灣探險家");
+                appState.playerName = defaultName;
+                document.getElementById('playerName').value = defaultName;
+            }
+
+            buildAchievements();
+            updateUI();
+        }
+
+        function submitRegister() {
+            const nameInput = document.getElementById('registerPlayerName').value.trim();
+            const emoji = document.getElementById('registerAvatar').textContent;
+
+            if (!nameInput) {
+                alert(appState.language === 'en' ? "Please enter a nickname!" : "請輸入您的暱稱！");
+                return;
+            }
+
+            appState.playerName = nameInput.slice(0, 15);
+            appState.playerAvatar = emoji;
+            appState.registered = true;
+            
+            document.getElementById('playerName').value = appState.playerName;
+            document.getElementById('playerAvatar').textContent = appState.playerAvatar;
+
+            saveState();
+            document.getElementById('registerModalBackdrop').style.display = 'none';
+            
+            updateUI();
+
+            const title = getTranslation("regSuccessTitle", "冒險開始！");
+            const desc = getTranslation("regSuccessDesc", "探險家 {name}，祝您台灣旅行愉快！").replace("{name}", appState.playerName);
+            showNotification(title, desc, "🎮");
+        }
+
+        function updateUI() {
+            updateStaticTranslations();
+
+            const totals = getAchievementTotals();
+            const lvlDetails = getLevelDetails(totals.completed);
+            
+            document.getElementById('playerLevelDisplay').textContent = `LV ${lvlDetails.level}`;
+            document.getElementById('playerTitle').textContent = lvlDetails.title;
+
+            const xpCurrent = totals.completed % 10;
+            const suffix = getTranslation("xpDisplaySuffix", "成就");
+            document.getElementById('playerXpDisplay').textContent = `${xpCurrent} / 10 ${suffix}`;
+            
+            const xpPercent = Math.min(100, Math.round((xpCurrent / 10) * 100));
+            document.getElementById('playerXpBar').style.width = `${xpPercent}%`;
+
+            renderBadgeWall();
+            updateMap();
+            renderCustomAchievements();
+            renderRadarChart();
+        }
+
+        // --- 21. App Startup ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            buildAchievements();
+            renderMap();
+            updateUI();
+        });
+    </script>
+</body>
+</html>
