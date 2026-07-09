@@ -1,6 +1,6 @@
 # Taiwan Travel Achievement List
 
-🌐 **Languages / 多語言版本**: [繁體中文](README.md) | [English](README.en.md) | [日本語](README.ja.md)
+🌐 **Languages / 多語言版本**: [繁體中文](README.md) | [English](README.en.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
 
 A personal Taiwan travel footprint tracker and sharing card generator that combines **achievement systems**, **metro design aesthetics**, and **travel notebook styles**.
 
@@ -26,6 +26,6 @@ This system is deployed entirely on the cloud. Players do not need to install an
 5. **10 Honor Badges**: Automatically unlocks titles like `🚄 Transit Master`, `🍢 Night Market Foodie`, `🚢 Island Hopper`, etc., based on milestones.
 6. **One-Click Share Card (PNG)**: Automatically compiles a high-resolution 800x1200 card containing name, avatar, level, badge wall, and radar chart on a canvas for sharing.
 7. **Dual-Theme Toggle**: Supports dark gaming style and light notebook washi paper style.
-8. **Tri-lingual Support**: Supports Traditional Chinese, English, and Japanese languages.
+8. **Multi-lingual Support**: Supports Traditional Chinese, English, Japanese, and Korean languages.
 9. **Backup and Restore**: LocalStorage auto-save, supporting JSON progress export and import for cross-device syncing.
 10. **Serverless Static Page**: A single pure HTML file loading extremely fast, keeping 100% of user data locally.
