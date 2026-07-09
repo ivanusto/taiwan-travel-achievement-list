@@ -1174,39 +1174,47 @@
         }
 
         footer {
-            margin-top: 48px;
-            border-top: 1px solid var(--border-color);
-            width: 100%;
-            max-width: 1400px;
-            padding: 24px;
+            border-top: 2px dashed var(--border-color);
+            margin-top: 40px;
+            padding: 30px 24px;
+            text-align: center;
             display: flex;
             flex-direction: column;
+            gap: 16px;
             align-items: center;
-            gap: 12px;
-            text-align: center;
-        }
-
-        .footer-credit {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
+            width: 100%;
+            max-width: 1400px;
         }
 
         .footer-social-links {
             display: flex;
+            flex-wrap: wrap;
             gap: 16px;
+            justify-content: center;
         }
 
         .footer-social-links a {
-            color: var(--text-muted);
-            font-size: 14px;
+            color: var(--text-secondary);
+            font-size: 13px;
             font-weight: 700;
             text-decoration: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+            background: var(--bg-card);
         }
 
         .footer-social-links a:hover {
-            color: var(--border-color-active);
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+            transform: translateY(-2px);
+        }
+
+        .footer-credit {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
         }
     </style>
 </head>
@@ -1234,7 +1242,7 @@
                     <span>🌍</span> <span data-i18n="worldTravelLink">環球旅行成就系統</span>
                 </a>
                 <button class="btn btn-accent" onclick="generateShareCard()">
-                    <span data-i18n="shareCardBtn">一鍵分享成就卡</span>
+                    <span>📤</span> <span data-i18n="shareCardBtn">一鍵分享成就卡</span>
                 </button>
                 <button class="btn" onclick="toggleTheme()">
                     <span id="themeToggleText" data-i18n="themeToggleTextLight">切換淺色</span>
@@ -1363,10 +1371,19 @@
         </div>
 
         <footer>
-            <div class="footer-credit" data-i18n="footerCredit">© 2026 台灣旅行成就系統. All rights reserved. Created with 💖 for Taiwan Travelers.</div>
             <div class="footer-social-links">
-                <a href="https://github.com/ivanusto/taiwan-travel-achievement-list" target="_blank">GitHub</a>
-                <a href="https://github.com/ivanusto/japan-travel-achievement-list" target="_blank" data-i18n="japanTravelLink">日本旅行成就系統</a>
+                <a href="https://yblog.org/" target="_blank" rel="noreferrer noopener">Yblog.org 優格網</a>
+                <a href="https://www.threads.net/@ivanusto" target="_blank" rel="noreferrer noopener">ivanusto @ threads</a>
+                <a href="https://x.com/ivanusto" target="_blank" rel="noreferrer noopener">ivanusto @ twitter</a>
+                <a href="https://www.plurk.com/ivanusto" target="_blank" rel="noreferrer noopener">ivanusto @ plurk</a>
+                <a href="https://www.instagram.com/ivanusto/" target="_blank" rel="noreferrer noopener">ivanusto @ instagram</a>
+                <a href="https://www.facebook.com/ivanusto" target="_blank" rel="noreferrer noopener">ivanusto @ facebook</a>
+                <a href="https://ivanusto.github.io/taiwan-travel-achievement-list/" target="_blank" rel="noreferrer noopener">🇹🇼 <span data-i18n="taiwanTravelLink">台灣旅行成就系統</span></a>
+                <a href="https://ivanusto.github.io/japan-travel-achievement-list/" target="_blank" rel="noreferrer noopener">🗾 <span data-i18n="japanTravelLink">日本旅行成就系統</span></a>
+                <a href="https://ivanusto.github.io/travel-achievement-list/" target="_blank" rel="noreferrer noopener">🌍 <span data-i18n="worldTravelLink">環球旅行成就系統</span></a>
+            </div>
+            <div class="footer-credit" data-i18n="footerCredit">
+                © 2026 台灣旅行成就系統. All rights reserved. Created with 💖 for Taiwan Travelers.
             </div>
         </footer>
     </div>
@@ -1455,6 +1472,7 @@
             "zh-TW": {
                         "title": "台灣旅行成就系統",
                         "subtitle": "探索寶島足跡 • 解鎖冒險徽章 • 完成你的台灣旅行手帳",
+                        "taiwanTravelLink": "台灣旅行成就系統",
                         "japanTravelLink": "日本旅行成就系統",
                         "worldTravelLink": "環球旅行成就系統",
                         "shareCardBtn": "一鍵分享成就卡",
@@ -1572,6 +1590,7 @@
             "en": {
                         "title": "Taiwan Travel Achievements",
                         "subtitle": "Explore Taiwan • Unlock Badges • Complete Your Travel Notebook",
+                        "taiwanTravelLink": "Taiwan Travel Achievements",
                         "japanTravelLink": "Japan Travel Achievements",
                         "worldTravelLink": "Global Travel Achievements",
                         "shareCardBtn": "Share Card",
@@ -1953,8 +1972,9 @@
             "ja": {
                         "title": "台湾旅行アチーブメントシステム",
                         "subtitle": "宝島の足跡を探索 • 冒험バッジを解鎖 • 台湾旅行手帳を完成させよう",
-                        "japanTravelLink": "日本旅行成就系統",
-                        "worldTravelLink": "環球旅行成就系統",
+                        "taiwanTravelLink": "台湾旅行アチーブメントシステム",
+                        "japanTravelLink": "日本旅行アチーブメントシステム",
+                        "worldTravelLink": "地球旅行アチーブメントシステム",
                         "shareCardBtn": "カードをシェア",
                         "themeToggleTextLight": "ライトテーマ",
                         "themeToggleTextDark": "ダークテーマ",
@@ -2334,6 +2354,7 @@
             "ko": {
                         "title": "대만 여행 아치이브먼트 시스템",
                         "subtitle": "보물섬의 발자국을 탐험 • 모험 배지를 해제 • 대만 여행 수첩을 완성해 보세요",
+                        "taiwanTravelLink": "대만 여행 아치이브먼트 시스템",
                         "japanTravelLink": "일본 여행 아치이브먼트",
                         "worldTravelLink": "세계 여행 아치이브먼트",
                         "shareCardBtn": "카드 공유하기",
