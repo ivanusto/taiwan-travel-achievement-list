@@ -1111,7 +1111,21 @@
             gap: 8px;
         }
 
-        .share-modal-backdrop, .custom-modal-backdrop {
+        .share-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .custom-modal-backdrop {
             position: fixed;
             top: 0;
             left: 0;
@@ -1130,38 +1144,68 @@
             background: var(--bg-card);
             border: 2px solid var(--border-color);
             border-radius: 20px;
-            max-width: 600px;
             width: 100%;
+            max-width: 440px;
             padding: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
             text-align: center;
+            box-shadow: var(--shadow-primary);
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            align-items: center;
             max-height: 90vh;
             overflow-y: auto;
         }
 
-        #sharingPreviewCanvas {
-            max-width: 100%;
-            height: auto;
+        .sharing-preview-canvas-wrapper {
+            width: 100%;
             border-radius: 12px;
+            overflow: hidden;
             border: 1px solid var(--border-color);
-            margin: 0 auto;
+            margin: 16px 0;
+            background: #000;
+        }
+
+        .sharing-preview-canvas-wrapper canvas {
+            width: 100%;
             display: block;
         }
 
-        .share-social-row {
+        .social-share-row {
             display: flex;
+            gap: 10px;
             justify-content: center;
-            gap: 12px;
-            margin: 8px 0;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            width: 100%;
         }
 
-        .share-actions {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
+        .social-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border-color);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .social-btn:hover {
+            border-color: var(--border-color-active) !important;
+            background: var(--bg-card-hover) !important;
+            transform: translateY(-2px);
+        }
+
+        .share-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+            width: 100%;
         }
 
         .custom-modal-content {
@@ -1478,24 +1522,41 @@
         </div>
     </div>
 
-    <!-- Share Card Composite Modal -->
-    <div class="share-modal-backdrop" id="shareModalBackdrop" onclick="closeShareModal()">
+    <!-- Share Card Generation Modal -->
+    <div class="share-modal-backdrop" id="shareModalBackdrop" onclick="if(event.target === this) closeShareModal()">
         <div class="share-modal-content" onclick="event.stopPropagation()">
-            <h3 data-i18n="shareModalTitle">📸 生成個人旅行成就卡</h3>
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 0;" data-i18n="shareModalDesc">你可以將此圖卡分享到社交媒體（如 Threads, IG 等），向大家炫耀你的台灣旅遊歷練！</p>
-            <div>
+            <h3 data-i18n="shareModalTitle">📸 生成個人成就卡</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px 0;" data-i18n="shareModalDesc">你可以將此圖卡分享到社交媒體，炫耀你的台灣旅遊歷練！</p>
+            
+            <div class="sharing-preview-canvas-wrapper" style="margin-bottom: 16px;">
                 <canvas id="sharingPreviewCanvas" width="800" height="1200"></canvas>
             </div>
-            <div class="share-social-row">
-                <span style="font-size: 13px; font-weight: 800; display: inline-flex; align-items: center;" data-i18n="shareToLabel">分享到：</span>
-                <button class="btn" onclick="shareToSocial('threads')">Threads</button>
-                <button class="btn" onclick="shareToSocial('x')">X (Twitter)</button>
-                <button class="btn" onclick="shareToSocial('facebook')">Facebook</button>
+
+            <div class="social-share-row" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 16px; width: 100%;">
+                <button class="social-btn threads" onclick="shareToSocial('threads')" title="Share to Threads">
+                    <span>🧵</span> Threads
+                </button>
+                <button class="social-btn facebook" onclick="shareToSocial('facebook')" title="Share to Facebook">
+                    <span>👤</span> Facebook
+                </button>
+                <button class="social-btn x-twitter" onclick="shareToSocial('x')" title="Share to X">
+                    <span>🐦</span> X / Twitter
+                </button>
             </div>
-            <div class="share-actions">
-                <button class="btn btn-accent" onclick="downloadShareCard()" data-i18n="downloadPngBtn">下載 PNG 圖片</button>
-                <button class="btn" onclick="closeShareModal()" data-i18n="cancelBtn">取消</button>
+
+            <div class="share-actions-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 12px; width: 100%;">
+                <button class="btn btn-accent" onclick="downloadShareCard()" style="justify-content: center; gap: 6px; font-weight: 700; width: 100%;">
+                    <span>💾</span> <span data-i18n="downloadPngBtn">下載 PNG 圖片</span>
+                </button>
+                <button class="btn" onclick="copyShareCardImage()" id="copyImageBtn" style="justify-content: center; gap: 6px; font-weight: 700; width: 100%;">
+                    <span>📸</span> <span data-i18n="copyImageBtnText">複製圖片</span>
+                </button>
+                <button class="btn" onclick="copyTextReport()" style="justify-content: center; gap: 6px; font-weight: 700; width: 100%;">
+                    <span>📝</span> <span data-i18n="copyTextReportBtnText">複製文字報告</span>
+                </button>
             </div>
+
+            <button class="btn" onclick="closeShareModal()" data-i18n="cancelBtn" style="width: 100%; justify-content: center; font-weight: 700;">取消</button>
         </div>
     </div>
 
@@ -1642,7 +1703,12 @@
                         "projectTaiwanLink": "台灣旅行成就系統",
                         "projectJapanLink": "日本旅行成就系統",
                         "projectWorldLink": "觀光旅行成就系統",
-                        "footerCreditUnified": "© 2026 Life Achievement Lists • Created by ivanusto. All rights reserved.<br>進度會自動儲存在您瀏覽器的本地快取（LocalStorage）中，無後端伺服器，確保您的隱私。"
+                        "footerCreditUnified": "© 2026 Life Achievement Lists • Created by ivanusto. All rights reserved.<br>進度會自動儲存在您瀏覽器的本地快取（LocalStorage）中，無後端伺服器，確保您的隱私。",
+                        "copyImageBtnText": "複製圖片",
+                        "copyTextReportBtnText": "複製文字報告",
+                        "copyImageSuccess": "圖片複製成功，快去貼上分享吧！",
+                        "copyTextSuccess": "文字報告已複製到剪貼簿！",
+                        "copyFailed": "複製失敗，瀏覽器可能不支援"
             },
             "en": {
                         "title": "Taiwan Travel Achievements",
@@ -2031,7 +2097,12 @@
                         "projectTaiwanLink": "Taiwan Travel Achievements",
                         "projectJapanLink": "Japan Travel Achievements",
                         "projectWorldLink": "Global Travel Achievements",
-                        "footerCreditUnified": "© 2026 Life Achievement Lists • Created by ivanusto. All rights reserved.<br>Progress is saved locally on your browser (LocalStorage) with complete privacy."
+                        "footerCreditUnified": "© 2026 Life Achievement Lists • Created by ivanusto. All rights reserved.<br>Progress is saved locally on your browser (LocalStorage) with complete privacy.",
+                        "copyImageBtnText": "Copy Image",
+                        "copyTextReportBtnText": "Copy Text Report",
+                        "copyImageSuccess": "Card image copied to clipboard!",
+                        "copyTextSuccess": "Text report copied to clipboard!",
+                        "copyFailed": "Copy failed. Browser may not support clipboard writing."
             },
             "ja": {
                         "title": "台湾旅行アチーブメントシステム",
@@ -2420,7 +2491,12 @@
                         "projectTaiwanLink": "台湾旅行の実績システム",
                         "projectJapanLink": "日本旅行の実績システム",
                         "projectWorldLink": "観光旅行の実績システム",
-                        "footerCreditUnified": "© 2026 Life Achievement Lists • Created by ivanusto. All rights reserved.<br>進行状況はブラウザのローカルストレージ（LocalStorage）に自動的に保存され、プライバシーは保護されます。"
+                        "footerCreditUnified": "© 2026 Life Achievement Lists • Created by ivanusto. All rights reserved.<br>進行状況はブラウザのローカルストレージ（LocalStorage）に自動的に保存され、プライバシーは保護されます。",
+                        "copyImageBtnText": "画像をコピー",
+                        "copyTextReportBtnText": "テキストレポートをコピー",
+                        "copyImageSuccess": "画像をクリップボードにコピーしました！",
+                        "copyTextSuccess": "テキストレポートをクリップボードにコピーしました！",
+                        "copyFailed": "コピーに失敗しました。ブラウザが対応していない可能性があります。"
             },
             "ko": {
                         "title": "대만 여행 아치이브먼트 시스템",
@@ -2809,7 +2885,12 @@
                         "projectTaiwanLink": "대만 여행 업적 시스템",
                         "projectJapanLink": "일본 여행 업적 시스템",
                         "projectWorldLink": "관광 여행 업적 시스템",
-                        "footerCreditUnified": "© 2026 Life Achievement Lists • Created by ivanusto. All rights reserved.<br>진행 상황은 브라우저의 로컬 캐시(LocalStorage)에 자동으로 저장되며 개인 정보가 보장됩니다."
+                        "footerCreditUnified": "© 2026 Life Achievement Lists • Created by ivanusto. All rights reserved.<br>진행 상황은 브라우저의 로컬 캐시(LocalStorage)에 자동으로 저장되며 개인 정보가 보장됩니다.",
+                        "copyImageBtnText": "이미지 복사",
+                        "copyTextReportBtnText": "텍스트 보고서 복사",
+                        "copyImageSuccess": "이미지가 클립보드에 복사되었습니다!",
+                        "copyTextSuccess": "텍스트 보고서가 클립보드에 복사되었습니다!",
+                        "copyFailed": "복사 실패. 브라우저가 클립보드 쓰기를 지원하지 않을 수 있습니다."
             }
 };
 
@@ -4294,6 +4375,131 @@
             const title = getTranslation("shareCardNotifyTitle", "圖卡下載成功");
             const desc = getTranslation("shareCardNotifyDesc", "歡迎分享到 Threads 或 Instagram！");
             showNotification(title, desc, "📸");
+        }
+
+        function copyShareCardImage() {
+            const canvas = document.getElementById('sharingPreviewCanvas');
+            if (!canvas) return;
+            
+            try {
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        showNotification(getTranslation("copyFailed"), "", "⚠️");
+                        return;
+                    }
+                    navigator.clipboard.write([
+                        new ClipboardItem({ 'image/png': blob })
+                    ]).then(() => {
+                        closeShareModal();
+                        showNotification(getTranslation("copyImageSuccess"), "", "📸");
+                    }).catch(err => {
+                        console.error("Clipboard image copy failed:", err);
+                        showNotification(getTranslation("copyFailed"), "", "⚠️");
+                    });
+                }, 'image/png');
+            } catch (e) {
+                console.error("ClipboardItem error:", e);
+                showNotification(getTranslation("copyFailed"), "", "⚠️");
+            }
+        }
+
+        function copyTextReport() {
+            const totals = getAchievementTotals();
+            const levelDetails = getLevelDetails(totals.completed);
+            const lang = appState.language || 'zh-TW';
+            
+            let unlockedBadges = [];
+            badgeData.forEach(badge => {
+                const stat = getBadgeProgress(badge.id);
+                if (stat.unlocked) {
+                    const name = getBadgeName(badge);
+                    unlockedBadges.push(`${badge.emoji} ${name}`);
+                }
+            });
+            
+            const unlockedAchs = achievementsData.filter(a => appState.checkedAchievements.includes(a.id))
+                .concat(appState.customAchievements.filter(c => c.done).map(c => ({ ...c, rarity: 'Custom', cat: '自訂' })));
+            unlockedAchs.sort((a, b) => b.diff - a.diff || b.id - a.id);
+            const top3 = unlockedAchs.slice(0, 3);
+            
+            let report = "";
+            if (lang === 'en') {
+                report += `🌟 ${appState.playerName}'s Taiwan Travel Achievements Report 🌟\n`;
+                report += `🏆 Title: ${levelDetails.title} (LV ${levelDetails.level})\n`;
+                report += `📊 Milestones Unlocked: ${totals.completed} / ${totals.total} (${Math.round(totals.completed / totals.total * 100)}%)\n`;
+                report += `🧭 Footprints: ${appState.visitedPrefectures.length} / 22 Counties (${Math.round(appState.visitedPrefectures.length / 22 * 100)}%)\n`;
+                if (unlockedBadges.length > 0) {
+                    report += `🎖️ Badges Showcase: ${unlockedBadges.join(', ')}\n`;
+                }
+                if (top3.length > 0) {
+                    report += `✨ Proudest Milestones:\n`;
+                    top3.forEach((ach, index) => {
+                        const name = getTranslation("ach-name-" + ach.id, ach.name);
+                        const desc = getTranslation("ach-desc-" + ach.id, ach.desc);
+                        report += `  ${index + 1}. [${name}] - ${desc}\n`;
+                    });
+                }
+                report += `\n📍 Record your Taiwan travel achievements here: ${SHARE_URL}\n`;
+            } else if (lang === 'ja') {
+                report += `🌟 【${appState.playerName}】の台湾旅行実績レポート 🌟\n`;
+                report += `🏆 現在の称号：${levelDetails.title} (LV ${levelDetails.level})\n`;
+                report += `📊 実績解除数：${totals.completed} / ${totals.total} (${Math.round(totals.completed / totals.total * 100)}%)\n`;
+                report += `🧭 足跡マップ：${appState.visitedPrefectures.length} / 22 県市 (${Math.round(appState.visitedPrefectures.length / 22 * 100)}%)\n`;
+                if (unlockedBadges.length > 0) {
+                    report += `🎖️ 獲得バッジ：${unlockedBadges.join(', ')}\n`;
+                }
+                if (top3.length > 0) {
+                    report += `✨ 誇りに思う実績：\n`;
+                    top3.forEach((ach, index) => {
+                        const name = getTranslation("ach-name-" + ach.id, ach.name);
+                        const desc = getTranslation("ach-desc-" + ach.id, ach.desc);
+                        report += `  ${index + 1}. 【${name}】 - ${desc}\n`;
+                    });
+                }
+                report += `\n📍 ここであなたの台湾旅行足跡を記録：${SHARE_URL}\n`;
+            } else if (lang === 'ko') {
+                report += `🌟 【${appState.playerName}】의 대만 여행 업적 보고서 🌟\n`;
+                report += `🏆 현재 등급：${levelDetails.title} (LV ${levelDetails.level})\n`;
+                report += `📊 업적 달성률：${totals.completed} / ${totals.total} (${Math.round(totals.completed / totals.total * 100)}%)\n`;
+                report += `🧭 발자국 지도：${appState.visitedPrefectures.length} / 22 시·현 (${Math.round(appState.visitedPrefectures.length / 22 * 100)}%)\n`;
+                if (unlockedBadges.length > 0) {
+                    report += `🎖️ 획득 배지：${unlockedBadges.join(', ')}\n`;
+                }
+                if (top3.length > 0) {
+                    report += `✨ 대표적인 업적：\n`;
+                    top3.forEach((ach, index) => {
+                        const name = getTranslation("ach-name-" + ach.id, ach.name);
+                        const desc = getTranslation("ach-desc-" + ach.id, ach.desc);
+                        report += `  ${index + 1}. 【${name}】 - ${desc}\n`;
+                    });
+                }
+                report += `\n📍 여기서 대만 여행 발자국을 기록해 보세요: ${SHARE_URL}\n`;
+            } else {
+                report += `🌟 【${appState.playerName}】的台灣旅行成就紀錄報告 🌟\n`;
+                report += `🏆 目前稱號：${levelDetails.title} (LV ${levelDetails.level})\n`;
+                report += `📊 解鎖成就數：${totals.completed} / ${totals.total} 項 (達成率 ${Math.round(totals.completed / totals.total * 100)}%)\n`;
+                report += `🧭 寶島足跡地圖：${appState.visitedPrefectures.length} / 22 縣市 (踏破率 ${Math.round(appState.visitedPrefectures.length / 22 * 100)}%)\n`;
+                if (unlockedBadges.length > 0) {
+                    report += `🎖️ 榮譽勳章牆：${unlockedBadges.join(', ')}\n`;
+                }
+                if (top3.length > 0) {
+                    report += `✨ 最引以為傲的里程碑：\n`;
+                    top3.forEach((ach, index) => {
+                        const name = getTranslation("ach-name-" + ach.id, ach.name);
+                        const desc = getTranslation("ach-desc-" + ach.id, ach.desc);
+                        report += `  ${index + 1}. 【${name}】 - ${desc}\n`;
+                    });
+                }
+                report += `\n📍 在此點亮你的台灣旅行足跡：${SHARE_URL}\n`;
+            }
+            
+            navigator.clipboard.writeText(report).then(() => {
+                closeShareModal();
+                showNotification(getTranslation("copyTextSuccess"), "", "📋");
+            }).catch(err => {
+                console.error("Text copy failed:", err);
+                showNotification(getTranslation("copyFailed"), "", "⚠️");
+            });
         }
 
         // --- 18.5 Social Share Intents ---
